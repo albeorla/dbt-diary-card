@@ -56,14 +56,6 @@ export const authOptions: NextAuthOptions = {
         id: user.id,
       },
     }),
-    // Normalize redirects to the site root unless a safe callbackUrl is provided
-    redirect: async ({ url, baseUrl }) => {
-      try {
-        const u = new URL(url, baseUrl);
-        if (u.origin === baseUrl) return u.toString();
-      } catch {}
-      return baseUrl;
-    },
   },
   pages: {
     signIn: "/signin",
