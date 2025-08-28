@@ -14,7 +14,7 @@ const CANONICAL_HOST = (() => {
 export function middleware(req: NextRequest) {
   // Skip redirects for API and Next.js internals to avoid breaking auth/cookies
   const { pathname } = new URL(req.url);
-  if (pathname.startsWith("/_next")) {
+  if (pathname.startsWith("/_next") || pathname.startsWith("/api/")) {
     return NextResponse.next();
   }
   const host = req.headers.get("host") || "";

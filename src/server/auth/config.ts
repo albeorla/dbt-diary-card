@@ -56,6 +56,14 @@ export const authOptions: NextAuthOptions = {
         id: user.id,
       },
     }),
+    // Normalize redirects to the site root unless a safe callbackUrl is provided
+    redirect: async ({ url, baseUrl }) => {
+      try {
+        const u = new URL(url, baseUrl);
+        if (u.origin === baseUrl) return u.toString();
+      } catch {}
+      return baseUrl;
+    },
   },
   pages: {
     signIn: "/signin",
@@ -63,10 +71,10 @@ export const authOptions: NextAuthOptions = {
   events: {
     signIn: async ({ user }) => {
       try {
-        const org = await db.organization.findFirst({ select: { id: true } });
+        const org = await (db as any).organization.findFirst({ select: { id: true } });
         if (!org) return;
         if (!user?.id) return;
-        await db.orgMembership.upsert({
+        await (db as any).orgMembership.upsert({
           where: { orgId_userId: { orgId: org.id, userId: user.id } },
           update: {},
           create: { orgId: org.id, userId: user.id, role: "USER" },
@@ -77,4 +85,5 @@ export const authOptions: NextAuthOptions = {
     },
   },
   secret: env.AUTH_SECRET,
+  debug: true,
 };
