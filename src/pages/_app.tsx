@@ -76,7 +76,8 @@ const MyApp: AppType<{ session: Session | null }> = ({
 function RoleAwareNav({ isActive }: { isActive: (href: string) => boolean }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-  const { data } = api.org.state.useQuery(undefined, { enabled: mounted });
+  const { status } = useSession();
+  const { data } = api.org.state.useQuery(undefined, { enabled: mounted && status === "authenticated" });
   // Render stable placeholders during SSR/first paint to avoid hydration mismatch
   if (!mounted) {
     return (

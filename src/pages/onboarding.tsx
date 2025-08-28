@@ -8,7 +8,7 @@ export default function OnboardingPage() {
   const { status } = useSession();
   const router = useRouter();
   const [name, setName] = useState("");
-  const state = api.org.state.useQuery();
+  const state = api.org.state.useQuery(undefined, { enabled: status === "authenticated" });
   const create = api.org.create.useMutation({
     onSuccess: async () => {
       await state.refetch();

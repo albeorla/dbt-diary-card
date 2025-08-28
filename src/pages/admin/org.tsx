@@ -5,7 +5,7 @@ import { useState } from "react";
 
 export default function AdminOrgPage() {
   const { status } = useSession();
-  const state = api.org.state.useQuery();
+  const state = api.org.state.useQuery(undefined, { enabled: status === "authenticated" });
   const members = api.org.listMembers.useQuery(undefined, { enabled: !!state.data?.org });
   const setRole = api.org.setRole.useMutation({ onSuccess: () => members.refetch() });
   const assign = api.org.assignManager.useMutation({ onSuccess: () => members.refetch() });
