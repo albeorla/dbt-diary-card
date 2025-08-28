@@ -1,17 +1,25 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { env } from "~/env";
 
-// Force all *.vercel.app traffic to the stable production domain so OAuth redirect URIs stay consistent
-const CANONICAL_HOST = "dbt-diarycard.vercel.app";
+// Use NEXTAUTH_URL as the canonical origin in production to keep OAuth + cookies consistent
+const CANONICAL_HOST = (() => {
+  try {
+    return env.NEXTAUTH_URL ? new URL(env.NEXTAUTH_URL).host : "dbt-diarycard.vercel.app";
+  } catch {
+    return "dbt-diarycard.vercel.app";
+  }
+})();
 
 export function middleware(req: NextRequest) {
   // Skip redirects for API and Next.js internals to avoid breaking auth/cookies
   const { pathname } = new URL(req.url);
-  if (pathname.startsWith("/_next") || pathname.startsWith("/api/")) {
+  if (pathname.startsWith("/_next")) {
     return NextResponse.next();
   }
   const host = req.headers.get("host") || "";
-  if (host !== CANONICAL_HOST && host.endsWith("vercel.app")) {
+  // If a canonical host is configured, redirect any non-canonical host to it
+  if (host && CANONICAL_HOST && host !== CANONICAL_HOST) {
     const url = new URL(req.url);
     url.host = CANONICAL_HOST;
     url.protocol = "https:";
