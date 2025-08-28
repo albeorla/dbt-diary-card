@@ -1,0 +1,14 @@
+# Prevent local env files from being uploaded by Vercel CLI deploys
+.env
+.env.local
+.env.*
+!.env.example
+
+# Usual build artifacts
+.next
+node_modules
+out
+build
+dist
+coverage
+*.log
