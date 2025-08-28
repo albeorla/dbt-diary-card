@@ -1,10 +1,8 @@
 import NextAuth from "next-auth";
-import { cache } from "react";
+import { getServerSession, type NextAuthOptions } from "next-auth";
+import { authOptions } from "./config";
 
-import { authConfig } from "./config";
-
-const { auth: uncachedAuth, handlers, signIn, signOut } = NextAuth(authConfig);
-
-const auth = cache(uncachedAuth);
-
-export { auth, handlers, signIn, signOut };
+export const auth = (req: any, res: any) => getServerSession(req, res, authOptions);
+export const handlers = NextAuth(authOptions);
+export const signIn = undefined as unknown as never;
+export const signOut = undefined as unknown as never;

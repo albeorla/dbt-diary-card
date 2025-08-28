@@ -38,10 +38,12 @@ interface CreateContextOptions {
  *
  * @see https://create.t3.gg/en/usage/trpc#-serverapitrpcts
  */
-const createInnerTRPCContext = (opts: CreateContextOptions) => {
+const createInnerTRPCContext = (opts: CreateContextOptions & { orgId?: string | null; role?: string | null }) => {
   return {
     session: opts.session,
     db,
+    orgId: opts.orgId ?? null,
+    role: opts.role ?? null,
   };
 };
 
@@ -57,8 +59,27 @@ export const createTRPCContext = async (opts: CreateNextContextOptions) => {
   // Get the session from the server using the getServerSession wrapper function
   const session = await auth(req, res);
 
+  // Derive org and role for the current user (if any)
+  let orgId: string | null = null;
+  let role: string | null = null;
+  try {
+    const firstOrg = await db.organization.findFirst({ select: { id: true } });
+    orgId = firstOrg?.id ?? null;
+    if (session?.user?.id && orgId) {
+      const membership = await db.orgMembership.findFirst({
+        where: { orgId, userId: session.user.id },
+        select: { role: true },
+      });
+      role = membership?.role ?? null;
+    }
+  } catch (e) {
+    // ignore context derivation errors; routers can handle missing org/role
+  }
+
   return createInnerTRPCContext({
     session,
+    orgId,
+    role,
   });
 };
 

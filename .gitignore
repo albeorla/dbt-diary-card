@@ -52,3 +52,4 @@ yarn-error.log*
 
 # idea files
 .idea
+client_secret_*.json

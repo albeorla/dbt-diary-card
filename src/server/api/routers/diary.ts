@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 
@@ -22,6 +23,14 @@ export const diaryRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const { date, notes, emotions, urges, skills } = input;
       const entryDate = new Date(date);
+
+      const today = new Date();
+      const isSameYMD = (a: Date, b: Date) =>
+        a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+
+      if (!isSameYMD(entryDate, today)) {
+        throw new TRPCError({ code: "FORBIDDEN", message: "Past entries cannot be edited" });
+      }
 
       const entry = await ctx.db.diaryEntry.upsert({
         where: { userId_entryDate: { userId: ctx.session.user.id, entryDate } },

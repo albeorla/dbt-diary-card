@@ -3,6 +3,7 @@ import { diaryRouter } from "~/server/api/routers/diary";
 import { analyticsRouter } from "~/server/api/routers/analytics";
 import { skillsRouter } from "~/server/api/routers/skills";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
+import { orgRouter } from "~/server/api/routers/org";
 
 /**
  * This is the primary router for your server.
@@ -14,6 +15,7 @@ export const appRouter = createTRPCRouter({
   diary: diaryRouter,
   analytics: analyticsRouter,
   skills: skillsRouter,
+  org: orgRouter,
 });
 
 // export type definition of API

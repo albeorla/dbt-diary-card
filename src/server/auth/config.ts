@@ -1,6 +1,7 @@
-import { PrismaAdapter } from "@auth/prisma-adapter";
-import { type DefaultSession, type NextAuthConfig } from "next-auth";
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import { type DefaultSession, type NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
+import { env } from "~/env";
 
 import { db } from "~/server/db";
 
@@ -30,9 +31,12 @@ declare module "next-auth" {
  *
  * @see https://next-auth.js.org/configuration/options
  */
-export const authConfig = {
+export const authOptions: NextAuthOptions = {
   providers: [
-    GoogleProvider,
+    GoogleProvider({
+      clientId: env.AUTH_GOOGLE_ID,
+      clientSecret: env.AUTH_GOOGLE_SECRET,
+    }),
     /**
      * ...add more providers here.
      *
@@ -53,4 +57,24 @@ export const authConfig = {
       },
     }),
   },
-} satisfies NextAuthConfig;
+  pages: {
+    signIn: "/signin",
+  },
+  events: {
+    signIn: async ({ user }) => {
+      try {
+        const org = await db.organization.findFirst({ select: { id: true } });
+        if (!org) return;
+        if (!user?.id) return;
+        await db.orgMembership.upsert({
+          where: { orgId_userId: { orgId: org.id, userId: user.id } },
+          update: {},
+          create: { orgId: org.id, userId: user.id, role: "USER" },
+        });
+      } catch {
+        // ignore non-fatal onboarding errors
+      }
+    },
+  },
+  secret: env.AUTH_SECRET,
+};

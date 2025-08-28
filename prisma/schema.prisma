@@ -60,6 +60,7 @@ model User {
     sessions      Session[]
     posts         Post[]
     diaryEntries  DiaryEntry[]
+    memberships   OrgMembership[]
 }
 
 model VerificationToken {
@@ -157,4 +158,67 @@ enum SkillModule {
     DISTRESS_TOLERANCE
     EMOTION_REGULATION
     INTERPERSONAL_EFFECTIVENESS
+}
+
+// Organization modeling
+
+enum OrgRole {
+    ADMIN
+    MANAGER
+    USER
+}
+
+model Organization {
+    id          String          @id @default(cuid())
+    name        String
+    createdAt   DateTime        @default(now())
+    updatedAt   DateTime        @updatedAt
+    memberships OrgMembership[]
+    invites     OrgInvite[]
+
+    @@unique([name])
+}
+
+model OrgMembership {
+    id        String       @id @default(cuid())
+    orgId     String
+    userId    String
+    role      OrgRole
+    createdAt DateTime     @default(now())
+    updatedAt DateTime     @updatedAt
+
+    org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+    user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    // Optional hierarchical assignments within the same organization
+    managerId String? 
+    manager   OrgMembership? @relation("ManagerToUsers", fields: [managerId], references: [id])
+    users     OrgMembership[] @relation("ManagerToUsers")
+
+    adminId   String?
+    admin     OrgMembership? @relation("AdminToManagers", fields: [adminId], references: [id])
+    managers  OrgMembership[] @relation("AdminToManagers")
+
+    // Back relation for invites where this membership is set as manager
+    managedInvites OrgInvite[] @relation("InviteManager")
+
+    @@unique([orgId, userId])
+    @@index([orgId, role])
+}
+
+model OrgInvite {
+    id          String       @id @default(cuid())
+    orgId       String
+    email       String
+    role        OrgRole      @default(USER)
+    managerId   String?
+    token       String       @unique
+    expiresAt   DateTime
+    consumedAt  DateTime?
+    consumedBy  String?
+
+    org         Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+    manager     OrgMembership? @relation("InviteManager", fields: [managerId], references: [id])
+
+    @@index([orgId, email])
 }
