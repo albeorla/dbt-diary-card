@@ -8,16 +8,7 @@ import "./src/env.js";
 const config = {
   reactStrictMode: true,
   transpilePackages: ["next-auth", "@next-auth/prisma-adapter"],
-
-  /**
-   * If you are using `appDir` then you must comment the below `i18n` config out.
-   *
-   * @see https://github.com/vercel/next.js/issues/41980
-   */
-  i18n: {
-    locales: ["en"],
-    defaultLocale: "en",
-  },
+  // App Router is used; i18n config here is unsupported.
 };
 
 export default config;
