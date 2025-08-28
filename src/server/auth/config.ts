@@ -32,6 +32,7 @@ declare module "next-auth" {
  * @see https://next-auth.js.org/configuration/options
  */
 export const authOptions: NextAuthOptions = {
+  session: { strategy: "database" },
   providers: [
     GoogleProvider({
       clientId: env.AUTH_GOOGLE_ID,
