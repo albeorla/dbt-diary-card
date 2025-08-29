@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { db } from "~/server/db";
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const rows = await db.$queryRawUnsafe<{ now: Date }[]>("SELECT NOW() as now");

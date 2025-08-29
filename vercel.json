@@ -1,0 +1,14 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "next build",
+  "installCommand": "npm install",
+  "outputDirectory": null,
+  "functions": {
+    "src/app/api/**/*.ts": {
+      "maxDuration": 10
+    },
+    "src/pages/api/**/*.ts": {
+      "maxDuration": 10
+    }
+  }
+}
