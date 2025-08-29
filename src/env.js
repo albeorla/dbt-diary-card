@@ -11,17 +11,17 @@ export const env = createEnv({
       process.env.NODE_ENV === "production"
         ? z.string()
         : z.string().optional(),
-    AUTH_GOOGLE_ID: z.string(),
-    AUTH_GOOGLE_SECRET: z.string(),
-    DATABASE_URL: z.string().url(),
-    STRIPE_SECRET_KEY: z.string(),
-    STRIPE_WEBHOOK_SECRET: z.string(),
+    AUTH_GOOGLE_ID: z.string().default("placeholder"),
+    AUTH_GOOGLE_SECRET: z.string().default("placeholder"),
+    DATABASE_URL: z.string().url().default("postgresql://postgres:password@localhost:5432/dbt_diary?schema=public"),
+    STRIPE_SECRET_KEY: z.string().default("***REMOVED***"),
+    STRIPE_WEBHOOK_SECRET: z.string().default("whsec_placeholder"),
     NEXTAUTH_URL: z.string().url().optional(),
     SMTP_HOST: z.string().default("smtp.gmail.com"),
     SMTP_PORT: z.coerce.number().default(465),
-    SMTP_USER: z.string(),
-    SMTP_PASS: z.string(),
-    EMAIL_FROM: z.string().email(),
+    SMTP_USER: z.string().default("placeholder@example.com"),
+    SMTP_PASS: z.string().default("placeholder"),
+    EMAIL_FROM: z.string().email().default("noreply@example.com"),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
@@ -33,7 +33,7 @@ export const env = createEnv({
    * `NEXT_PUBLIC_`.
    */
   client: {
-    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string(),
+    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().default("pk_test_placeholder"),
   },
 
   /**
