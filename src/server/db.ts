@@ -18,9 +18,6 @@ const createPrismaClient = () => {
         url: env.DATABASE_URL,
       },
     };
-    
-    // Limit connection pool size for serverless
-    prismaOptions.connectionLimit = 1;
   }
 
   const client = new PrismaClient(prismaOptions);
