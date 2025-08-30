@@ -13,7 +13,7 @@ export const env = createEnv({
         : z.string().optional(),
     AUTH_GOOGLE_ID: z.string().default("placeholder"),
     AUTH_GOOGLE_SECRET: z.string().default("placeholder"),
-    DATABASE_URL: z.string().url().default("postgresql://postgres:password@localhost:5432/dbt_diary?schema=public"),
+    DATABASE_URL: z.string().default("postgresql://postgres:password@localhost:5432/dbt_diary?schema=public"),
     STRIPE_SECRET_KEY: z.string().default("***REMOVED***"),
     STRIPE_WEBHOOK_SECRET: z.string().default("whsec_placeholder"),
     NEXTAUTH_URL: z.string().url().optional(),
@@ -21,7 +21,7 @@ export const env = createEnv({
     SMTP_PORT: z.coerce.number().default(465),
     SMTP_USER: z.string().default("placeholder@example.com"),
     SMTP_PASS: z.string().default("placeholder"),
-    EMAIL_FROM: z.string().email().default("noreply@example.com"),
+    EMAIL_FROM: z.string().default("noreply@example.com"),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
