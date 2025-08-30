@@ -48,6 +48,27 @@ export default function DashboardPage() {
     { enabled: status === "authenticated" }
   );
 
+  // Calculate streak days (must be before any conditional returns to respect Rules of Hooks)
+  const streakDays = useMemo(() => {
+    const dates = (recent.data ?? []).map((e: any) => new Date(e.entryDate)).sort((a, b) => b.getTime() - a.getTime());
+    if (dates.length === 0) return 0;
+    let streak = 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    let cursor = new Date(today);
+    const hasDate = (d: Date) => dates.some((x) => {
+      const y = new Date(x);
+      y.setHours(0, 0, 0, 0);
+      return y.getTime() === d.getTime();
+    });
+    // Count today first, then walk back consecutive days
+    while (hasDate(cursor)) {
+      streak += 1;
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    return streak;
+  }, [recent.data]);
+
   if (status === "unauthenticated") {
     return (
       <main className="flex min-h-screen items-center justify-center">
@@ -68,25 +89,6 @@ export default function DashboardPage() {
   });
 
   const totalEntries = weekly.data?.length ?? 0;
-  const streakDays = useMemo(() => {
-    const dates = (recent.data ?? []).map((e: any) => new Date(e.entryDate)).sort((a, b) => b.getTime() - a.getTime());
-    if (dates.length === 0) return 0;
-    let streak = 0;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    let cursor = new Date(today);
-    const hasDate = (d: Date) => dates.some((x) => {
-      const y = new Date(x);
-      y.setHours(0, 0, 0, 0);
-      return y.getTime() === d.getTime();
-    });
-    // Count today first, then walk back consecutive days
-    while (hasDate(cursor)) {
-      streak += 1;
-      cursor.setDate(cursor.getDate() - 1);
-    }
-    return streak;
-  }, [recent.data]);
 
   return (
     <>
