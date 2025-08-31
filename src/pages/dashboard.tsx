@@ -8,6 +8,9 @@ import WeeklySummary from "~/components/dashboard/WeeklySummary";
 import EmotionChart from "~/components/dashboard/EmotionChart";
 import SkillsFrequency from "~/components/dashboard/SkillsFrequency";
 import UrgeHeatmap from "~/components/dashboard/UrgeHeatmap";
+import Paper from "@mui/material/Paper";
+import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
 
 function useDefaultRange() {
   return useMemo(() => {
@@ -185,44 +188,45 @@ export default function DashboardPage() {
         />
 
         <section className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2">
-          <div className="rounded border p-4">
-            <h2 className="mb-3 text-lg font-semibold">Emotion Trends</h2>
+          <Paper variant="outlined" sx={{ p: 2 }}>
+            <Typography variant="h6" sx={{ mb: 1 }}>Emotion Trends</Typography>
             {trends.isLoading ? (
               <div className="space-y-2">
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <div key={i} className="flex items-center gap-3">
+                  <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                     <Skeleton width={120} />
                     <Skeleton width={200} height={8} />
-                  </div>
+                  </Box>
                 ))}
               </div>
             ) : (
               <EmotionChart trends={(trends.data as any) ?? []} />
             )}
-          </div>
+          </Paper>
 
-          <div className="rounded border p-4">
-            <h2 className="mb-3 text-lg font-semibold">Top Skills</h2>
+          <Paper variant="outlined" sx={{ p: 2 }}>
+            <Typography variant="h6" sx={{ mb: 1 }}>Top Skills</Typography>
             {skills.isLoading ? (
               <div className="space-y-2">
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <div key={i} className="flex items-center gap-3">
+                  <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                     <Skeleton width={120} />
                     <Skeleton width={200} height={8} />
-                  </div>
+                  </Box>
                 ))}
               </div>
             ) : (
               <SkillsFrequency items={((skills.data ?? []) as any)} />
             )}
-          </div>
+          </Paper>
         </section>
 
-        <section className="mb-8 rounded border p-4">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Urge Heatmap</h2>
-            <div className="text-sm text-gray-500">Range: {range.start} → {range.end}</div>
-          </div>
+        <section className="mb-8">
+          <Paper variant="outlined" sx={{ p: 2 }}>
+            <Box sx={{ mb: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Typography variant="h6">Urge Heatmap</Typography>
+              <Typography variant="body2" color="text.secondary">Range: {range.start} → {range.end}</Typography>
+            </Box>
           {urges.isLoading ? (
             <div className="space-y-2">
               <span className="inline-block h-6 w-full animate-pulse rounded bg-gray-200" />
@@ -232,12 +236,15 @@ export default function DashboardPage() {
           ) : (
             <UrgeHeatmap start={range.start} end={range.end} items={((urges.data ?? []) as any)} />
           )}
+          </Paper>
         </section>
 
-        <section className="mb-8 rounded border p-4">
-          <h2 className="mb-1 text-lg font-semibold">Streak</h2>
-          <div className="text-sm text-gray-600">Consecutive days with an entry (including today)</div>
-          <div className="mt-2 text-3xl font-bold">{streakDays} day{streakDays === 1 ? "" : "s"}</div>
+        <section className="mb-8">
+          <Paper variant="outlined" sx={{ p: 2 }}>
+            <Typography variant="h6" sx={{ mb: 0.5 }}>Streak</Typography>
+            <div className="text-sm text-gray-600">Consecutive days with an entry (including today)</div>
+            <div className="mt-2 text-3xl font-bold">{streakDays} day{streakDays === 1 ? "" : "s"}</div>
+          </Paper>
         </section>
       </main>
     </>

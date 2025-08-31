@@ -11,6 +11,18 @@ import dynamic from "next/dynamic";
 import Head from "next/head";
 
 import "~/styles/globals.css";
+import { ThemeProvider } from "@mui/material/styles";
+import CssBaseline from "@mui/material/CssBaseline";
+import AppBar from "@mui/material/AppBar";
+import Toolbar from "@mui/material/Toolbar";
+import Typography from "@mui/material/Typography";
+import Button from "@mui/material/Button";
+import Container from "@mui/material/Container";
+import Box from "@mui/material/Box";
+import theme, { createAppTheme, type PaletteMode } from "~/styles/theme";
+import IconButton from "@mui/material/IconButton";
+import DarkModeIcon from "@mui/icons-material/DarkMode";
+import LightModeIcon from "@mui/icons-material/LightMode";
 
 const geist = Geist({
   subsets: ["latin"],
@@ -45,30 +57,67 @@ const MyApp: AppType<{ session: Session | null }> = ({
 
   const isActive = (href: string) => router.pathname === href;
 
+  const [mode, setMode] = useState<PaletteMode>('light');
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    // Prefer saved theme, else system
+    const saved = typeof window !== 'undefined' ? (localStorage.getItem('theme-mode') as PaletteMode | null) : null;
+    if (saved === 'light' || saved === 'dark') setMode(saved);
+    else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) setMode('dark');
+    setMounted(true);
+  }, []);
+  const muiTheme = mounted ? createAppTheme(mode) : theme;
+
   return (
     <SessionProvider session={session}>
-      <div className={geist.className}>
+      <ThemeProvider theme={muiTheme}>
+        <CssBaseline />
+        <div className={geist.className}>
         <Head>
           <title>DBT Diary Card</title>
         </Head>
-        <header className="sticky top-0 z-20 border-b bg-white/90 px-4 py-3 backdrop-blur">
-          <nav className="mx-auto flex max-w-5xl items-center justify-between">
-            <div className="flex items-center gap-4 text-sm">
-              <Link href="/dashboard" className="mr-1 text-base font-semibold text-gray-900 hover:underline">
-                DBT Diary Card
-              </Link>
-              <RoleAwareNavNoSSR isActive={isActive} />
-            </div>
-            <HeaderAuthNoSSR />
-          </nav>
-        </header>
+        <AppBar position="sticky" color="inherit" elevation={0} sx={{ borderBottom: 1, borderColor: 'divider', backdropFilter: 'blur(6px)', bgcolor: 'rgba(255,255,255,0.9)' }}>
+          <Toolbar sx={{ px: 2 }}>
+            <Container maxWidth="lg" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Link href="/dashboard">
+                  <Typography variant="h6" component="span" color="text.primary" sx={{ fontWeight: 700 }}>
+                    DBT Diary Card
+                  </Typography>
+                </Link>
+                <Box sx={{ display: { xs: 'none', sm: 'flex' }, gap: 2 }}>
+                  <RoleAwareNavNoSSR isActive={isActive} />
+                </Box>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <IconButton
+                  size="small"
+                  aria-label="Toggle theme"
+                  onClick={() => {
+                    setMode((m) => {
+                      const next = m === 'light' ? 'dark' : 'light';
+                      try { localStorage.setItem('theme-mode', next); } catch {}
+                      return next;
+                    });
+                  }}
+                >
+                  {mode === 'dark' ? <LightModeIcon fontSize="small" /> : <DarkModeIcon fontSize="small" />}
+                </IconButton>
+                <HeaderAuthNoSSR />
+              </Box>
+            </Container>
+          </Toolbar>
+        </AppBar>
         <div aria-live="polite" className="sr-only" role="status">
           {routeMsg}
         </div>
-        <div ref={mainRef} tabIndex={-1}>
-          <Component {...pageProps} />
+        <Container maxWidth="lg" sx={{ py: 3 }}>
+          <div ref={mainRef} tabIndex={-1}>
+            <Component {...pageProps} />
+          </div>
+        </Container>
         </div>
-      </div>
+      </ThemeProvider>
     </SessionProvider>
   );
 };
@@ -125,24 +174,18 @@ function HeaderAuth() {
   }
   if (!session) {
     return (
-      <button
-        className="rounded border border-gray-300 px-3 py-1 text-sm text-gray-800 hover:bg-gray-50"
-        onClick={() => void signIn()}
-      >
-        Sign in
-      </button>
+      <Button variant="outlined" size="small" onClick={() => void signIn()}>Sign in</Button>
     );
   }
   return (
-    <div className="flex items-center gap-3 text-sm">
-      <span className="truncate max-w-[160px] text-gray-700">{session.user?.name ?? session.user?.email}</span>
-      <button
-        className="rounded bg-gray-800 px-3 py-1 text-white hover:bg-black"
-        onClick={() => void signOut({ callbackUrl: "/signin" })}
-      >
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+      <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        {session.user?.name ?? session.user?.email}
+      </Typography>
+      <Button variant="contained" size="small" onClick={() => void signOut({ callbackUrl: "/signin" })}>
         Sign out
-      </button>
-    </div>
+      </Button>
+    </Box>
   );
 }
 

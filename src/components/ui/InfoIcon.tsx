@@ -1,19 +1,15 @@
 import React from "react";
-import { Tooltip } from "./Tooltip";
+import Tooltip from "@mui/material/Tooltip";
+import InfoOutlined from "@mui/icons-material/InfoOutlined";
 
 export function InfoIcon({ title }: { title: string }) {
   return (
-    <Tooltip content={title}>
-      <span
-        className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-gray-300 text-[10px] font-semibold text-gray-500 hover:bg-gray-50"
-        role="img"
-        aria-label="Info"
-      >
-        i
+    <Tooltip title={title} arrow>
+      <span aria-label="Info" role="img" style={{ display: "inline-flex", alignItems: "center" }}>
+        <InfoOutlined fontSize="inherit" sx={{ fontSize: 16, color: "text.secondary" }} />
       </span>
     </Tooltip>
   );
 }
 
 export default InfoIcon;
-

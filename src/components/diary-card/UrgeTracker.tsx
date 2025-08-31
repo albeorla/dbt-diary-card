@@ -1,5 +1,8 @@
 import React from "react";
 import InfoIcon from "~/components/ui/InfoIcon";
+import Paper from "@mui/material/Paper";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
 
 export type Urge =
   | "SELF_HARM"
@@ -31,15 +34,15 @@ export function UrgeTracker({
 }) {
   return (
     <section className="mb-8">
-      <h2 className="mb-2 text-xl font-semibold">Urges (0-5)</h2>
+      <Typography variant="h6" sx={{ mb: 1 }}>Urges (0-5)</Typography>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         {Object.entries(urges).map(([k, v]) => (
-          <div key={k} className="rounded border p-3">
-            <div className="mb-2 flex items-center justify-between">
-              <div className="flex items-center gap-1">
-                <span className="font-medium">{URGE_LABELS[k as Urge]}</span>
+          <Paper key={k} variant="outlined" sx={{ p: 2 }}>
+            <Box sx={{ mb: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>{URGE_LABELS[k as Urge]}</Typography>
                 <InfoIcon title={`Track your urge: ${URGE_LABELS[k as Urge].toLowerCase()}. Set intensity and whether you acted on it.`} />
-              </div>
+              </Box>
               <label className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"
@@ -49,8 +52,8 @@ export function UrgeTracker({
                 />
                 Acted on
               </label>
-            </div>
-            <div className="flex items-center gap-2">
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <input
                 type="range"
                 min={0}
@@ -60,8 +63,8 @@ export function UrgeTracker({
                 title={`Set ${URGE_LABELS[k as Urge].toLowerCase()} urge intensity from 0 (none) to 5 (strongest). Current: ${v.intensity}`}
               />
               <span className="w-6 text-right text-sm">{v.intensity}</span>
-            </div>
-          </div>
+            </Box>
+          </Paper>
         ))}
       </div>
     </section>
@@ -69,4 +72,3 @@ export function UrgeTracker({
 }
 
 export default UrgeTracker;
-
