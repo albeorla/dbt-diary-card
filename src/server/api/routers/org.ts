@@ -120,7 +120,8 @@ export const orgRouter = createTRPCRouter({
       });
       // Send invite email
       const base = env.NEXTAUTH_URL ?? "http://localhost:3000";
-      const link = `${base}/invite/${invite.token}`;
+      // Magic link: auto-accept + auto-login
+      const link = `${base}/api/invite/accept/${invite.token}`;
       try {
         await sendInviteEmail(email, link);
       } catch (e) {
@@ -360,5 +361,4 @@ export const orgRouter = createTRPCRouter({
       return Array.from(counts, ([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
     }),
 });
-
 

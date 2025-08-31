@@ -174,8 +174,8 @@ export default function AdminOrgPage() {
             </div>
             {assignByEmail.data?.status === "invited" && (
               <div className="rounded border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
-                Invite created. Share this link with the user: 
-                <a className="ml-1 underline" href={`${inviteBase}/invite/${assignByEmail.data.token}`}>{`${inviteBase}/invite/${assignByEmail.data.token}`}</a>
+                Invite created. Magic link:
+                <a className="ml-1 underline" href={`${inviteBase}/api/invite/accept/${assignByEmail.data.token}`}>{`${inviteBase}/api/invite/accept/${assignByEmail.data.token}`}</a>
                 <div>Expires: {new Date(assignByEmail.data.expiresAt).toLocaleString()}</div>
               </div>
             )}
@@ -185,5 +185,4 @@ export default function AdminOrgPage() {
     </>
   );
 }
-
 
