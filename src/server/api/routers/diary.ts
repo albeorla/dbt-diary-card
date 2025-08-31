@@ -22,7 +22,11 @@ export const diaryRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       const { date, notes, emotions, urges, skills } = input;
-      const entryDate = new Date(date);
+      const parseYMD = (s: string) => {
+        const [y, m, d] = s.split("-").map((v) => Number(v));
+        return new Date((y as number) || 1970, ((m as number) || 1) - 1, (d as number) || 1);
+      };
+      const entryDate = parseYMD(date);
 
       const today = new Date();
       const isSameYMD = (a: Date, b: Date) =>
@@ -105,5 +109,4 @@ export const diaryRouter = createTRPCRouter({
       return ctx.db.diaryEntry.delete({ where: { id: input.id, userId: ctx.session.user.id } as any });
     }),
 });
-
 

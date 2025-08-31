@@ -21,7 +21,7 @@ export function middleware(req: NextRequest) {
   // Do NOT skip for /api/auth so that OAuth sign-in + callback are on the canonical host
   const host = req.headers.get("host") || "";
   // If a canonical host is configured, redirect any non-canonical host to it
-  if (host && CANONICAL_HOST && host !== CANONICAL_HOST) {
+  if (process.env.NODE_ENV === "production" && host && CANONICAL_HOST && host !== CANONICAL_HOST) {
     const url = new URL(req.url);
     url.host = CANONICAL_HOST;
     url.protocol = "https:";
@@ -33,5 +33,4 @@ export function middleware(req: NextRequest) {
 export const config = {
   matcher: ["/(.*)"],
 };
-
 

@@ -4,6 +4,10 @@ import { useSession, signIn } from "next-auth/react";
 import { api } from "~/utils/api";
 import { useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/router";
+import WeeklySummary from "~/components/dashboard/WeeklySummary";
+import EmotionChart from "~/components/dashboard/EmotionChart";
+import SkillsFrequency from "~/components/dashboard/SkillsFrequency";
+import UrgeHeatmap from "~/components/dashboard/UrgeHeatmap";
 
 function useDefaultRange() {
   return useMemo(() => {
@@ -41,6 +45,10 @@ export default function DashboardPage() {
   );
   const weekly = api.analytics.getWeeklySummary.useQuery(
     { weekStart: range.start },
+    { enabled: status === "authenticated" }
+  );
+  const urges = api.analytics.getUrgePatterns.useQuery(
+    { startDate: range.start, endDate: range.end },
     { enabled: status === "authenticated" }
   );
   const recent = api.diary.getRecent.useQuery(
@@ -84,8 +92,7 @@ export default function DashboardPage() {
 
   const avgByEmotion: Record<string, number> = {};
   (trends.data ?? []).forEach((r) => {
-    avgByEmotion[r.emotion as string] =
-      ((avgByEmotion[r.emotion as string] ?? 0) + (r.rating as number)) / 2 || r.rating;
+    avgByEmotion[r.emotion as string] = ((avgByEmotion[r.emotion as string] ?? 0) + (r.rating as number)) / 2 || r.rating;
   });
 
   const totalEntries = weekly.data?.length ?? 0;
@@ -171,100 +178,60 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <section className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-          <div className="rounded border p-4">
-            <div className="text-sm text-gray-500">Entries</div>
-            <div className="text-2xl font-semibold">{weekly.isLoading ? <Skeleton width={48} /> : totalEntries}</div>
-          </div>
-          <div className="rounded border p-4">
-            <div className="text-sm text-gray-500">Skills Used</div>
-            <div className="text-2xl font-semibold">{skills.isLoading ? <Skeleton width={48} /> : (skills.data ?? []).reduce((a, b) => a + (b.count as number), 0)}</div>
-          </div>
-          <div className="rounded border p-4">
-            <div className="text-sm text-gray-500">Tracked Emotions</div>
-            <div className="text-2xl font-semibold">{trends.isLoading ? <Skeleton width={48} /> : Object.keys(avgByEmotion).length}</div>
-          </div>
-        </section>
+        <WeeklySummary
+          entriesCount={weekly.isLoading ? 0 : totalEntries}
+          skillsCount={skills.isLoading ? 0 : (skills.data ?? []).reduce((a, b) => a + (b.count as number), 0)}
+          emotionsCount={trends.isLoading ? 0 : Object.keys(avgByEmotion).length}
+        />
 
         <section className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2">
           <div className="rounded border p-4">
-            <h2 className="mb-3 text-lg font-semibold">Average Emotions</h2>
-            <div className="space-y-2">
-              {trends.isLoading && (
-                <div className="space-y-2">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <div key={i} className="flex items-center gap-3">
-                      <Skeleton width={120} />
-                      <Skeleton width={200} height={8} />
-                    </div>
-                  ))}
-                </div>
-              )}
-              {!trends.isLoading && Object.entries(avgByEmotion).map(([emotion, avg]) => (
-                <div key={emotion} className="flex items-center gap-3">
-                  <span className="w-40 text-sm">{emotion}</span>
-                  <div className="h-2 grow rounded bg-gray-100">
-                    <div className="h-2 rounded bg-indigo-500" style={{ width: `${(avg as number) * 10}%` }} />
+            <h2 className="mb-3 text-lg font-semibold">Emotion Trends</h2>
+            {trends.isLoading ? (
+              <div className="space-y-2">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <Skeleton width={120} />
+                    <Skeleton width={200} height={8} />
                   </div>
-                  <span className="w-10 text-right text-sm">{(avg as number).toFixed(1)}</span>
-                </div>
-              ))}
-              {Object.keys(avgByEmotion).length === 0 && (
-                <div className="text-sm text-gray-500">No data</div>
-              )}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <EmotionChart trends={(trends.data as any) ?? []} />
+            )}
           </div>
 
           <div className="rounded border p-4">
             <h2 className="mb-3 text-lg font-semibold">Top Skills</h2>
-            <div className="space-y-2">
-              {skills.isLoading && (
-                <div className="space-y-2">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <div key={i} className="flex items-center gap-3">
-                      <Skeleton width={120} />
-                      <Skeleton width={200} height={8} />
-                    </div>
-                  ))}
-                </div>
-              )}
-              {!skills.isLoading && (skills.data ?? []).map((s) => (
-                <div key={s.name as string} className="flex items-center gap-3">
-                  <span className="w-40 text-sm">{s.name as string}</span>
-                  <div className="h-2 grow rounded bg-gray-100">
-                    <div className="h-2 rounded bg-emerald-500" style={{ width: `${Math.min(100, (s.count as number) * 10)}%` }} />
+            {skills.isLoading ? (
+              <div className="space-y-2">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <Skeleton width={120} />
+                    <Skeleton width={200} height={8} />
                   </div>
-                  <span className="w-10 text-right text-sm">{s.count as number}</span>
-                </div>
-              ))}
-              {(skills.data ?? []).length === 0 && (
-                <div className="text-sm text-gray-500">No data</div>
-              )}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <SkillsFrequency items={((skills.data ?? []) as any)} />
+            )}
           </div>
         </section>
 
         <section className="mb-8 rounded border p-4">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Emotion Trends</h2>
+            <h2 className="text-lg font-semibold">Urge Heatmap</h2>
             <div className="text-sm text-gray-500">Range: {range.start} → {range.end}</div>
           </div>
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-            {Object.entries(
-              (trends.data ?? []).reduce<Record<string, { date: string; rating: number }[]>>((acc, r: any) => {
-                (acc[r.emotion] ??= []).push({ date: new Date(r.date).toISOString().slice(0, 10), rating: r.rating });
-                return acc;
-              }, {})
-            ).map(([emotion, points]) => (
-              <div key={emotion} className="flex items-center gap-3">
-                <span className="w-40 text-sm">{emotion}</span>
-                <Sparkline data={points} height={28} />
-              </div>
-            ))}
-            {(!trends.data || trends.data.length === 0) && (
-              <div className="text-sm text-gray-500">No data</div>
-            )}
-          </div>
+          {urges.isLoading ? (
+            <div className="space-y-2">
+              <span className="inline-block h-6 w-full animate-pulse rounded bg-gray-200" />
+              <span className="inline-block h-6 w-full animate-pulse rounded bg-gray-200" />
+              <span className="inline-block h-6 w-full animate-pulse rounded bg-gray-200" />
+            </div>
+          ) : (
+            <UrgeHeatmap start={range.start} end={range.end} items={((urges.data ?? []) as any)} />
+          )}
         </section>
 
         <section className="mb-8 rounded border p-4">
@@ -287,26 +254,4 @@ function Skeleton({ width = 80, height = 24 }: { width?: number | string; height
   );
 }
 
-function Sparkline({ data, height = 24 }: { data: { date: string; rating: number }[]; height?: number }) {
-  const width = 160;
-  const padding = 4;
-  const xs = data
-    .map((d) => d.date)
-    .sort()
-    .filter((v, i, a) => a.indexOf(v) === i);
-  const points = xs.map((x, i) => {
-    const dayVals = data.filter((d) => d.date === x).map((d) => d.rating);
-    const val = dayVals.length ? dayVals.reduce((a, b) => a + b, 0) / dayVals.length : 0;
-    const px = padding + (i / Math.max(1, xs.length - 1)) * (width - padding * 2);
-    const py = padding + (1 - Math.min(10, Math.max(0, val)) / 10) * (height - padding * 2);
-    return [px, py] as const;
-  });
-  const dAttr = points.map((p, i) => (i === 0 ? `M ${p[0]},${p[1]}` : `L ${p[0]},${p[1]}`)).join(" ");
-  return (
-    <svg width={width} height={height} className="text-indigo-500">
-      <rect x={0} y={0} width={width} height={height} fill="none" />
-      <path d={dAttr} stroke="currentColor" strokeWidth={2} fill="none" />
-    </svg>
-  );
-}
-
+// Sparkline moved to dedicated component

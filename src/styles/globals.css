@@ -4,3 +4,11 @@
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
+
+/* Print-friendly defaults for export */
+@media print {
+  body { background: #ffffff !important; }
+  .no-print { display: none !important; }
+  .print-area { display: block !important; }
+  a[href]:after { content: "" !important; }
+}

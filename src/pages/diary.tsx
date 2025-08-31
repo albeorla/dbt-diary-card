@@ -3,62 +3,25 @@ import { useRouter } from "next/router";
 import Head from "next/head";
 import { useSession, signIn } from "next-auth/react";
 import { api } from "~/utils/api";
+import { EmotionSliders, EMOTION_LABELS, type Emotion } from "~/components/diary-card/EmotionSliders";
+import { UrgeTracker, URGE_LABELS, type Urge } from "~/components/diary-card/UrgeTracker";
+import { SkillsCheckList, SKILL_MODULE_LABELS } from "~/components/diary-card/SkillsCheckList";
+import NotesSection from "~/components/diary-card/NotesSection";
+import FormActions from "~/components/diary-card/FormActions";
+import InfoIcon from "~/components/ui/InfoIcon";
 
-type Emotion =
-  | "SADNESS"
-  | "ANGER"
-  | "FEAR"
-  | "SHAME"
-  | "JOY"
-  | "PRIDE"
-  | "LOVE"
-  | "GUILT"
-  | "ANXIETY"
-  | "DISGUST";
-
-type Urge =
-  | "SELF_HARM"
-  | "SUBSTANCE_USE"
-  | "BINGE_EATING"
-  | "RESTRICTING"
-  | "ISOLATING"
-  | "LASHING_OUT"
-  | "RUMINATING";
-
-const EMOTION_LABELS: Record<Emotion, string> = {
-  SADNESS: "Sadness",
-  ANGER: "Anger",
-  FEAR: "Fear",
-  SHAME: "Shame",
-  JOY: "Joy",
-  PRIDE: "Pride",
-  LOVE: "Love",
-  GUILT: "Guilt",
-  ANXIETY: "Anxiety",
-  DISGUST: "Disgust",
-};
-
-const URGE_LABELS: Record<Urge, string> = {
-  SELF_HARM: "Self-harm",
-  SUBSTANCE_USE: "Substance use",
-  BINGE_EATING: "Binge eating",
-  RESTRICTING: "Restricting",
-  ISOLATING: "Isolating",
-  LASHING_OUT: "Lashing out",
-  RUMINATING: "Ruminating",
-};
-
-const SKILL_MODULE_LABELS: Record<string, string> = {
-  MINDFULNESS: "Mindfulness",
-  DISTRESS_TOLERANCE: "Distress Tolerance",
-  EMOTION_REGULATION: "Emotion Regulation",
-  INTERPERSONAL_EFFECTIVENESS: "Interpersonal Effectiveness",
-};
+// Types and labels are imported from components
 
 export default function DiaryPage() {
   const { status, data: session } = useSession();
   const router = useRouter();
-  const todayStr = useMemo(() => new Date().toISOString().slice(0, 10), []);
+  const todayStr = useMemo(() => {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }, []);
   const [date, setDate] = useState<string>(todayStr);
   const [notes, setNotes] = useState<string>("");
   const [emotions, setEmotions] = useState<Record<Emotion, number>>({
@@ -224,188 +187,38 @@ export default function DiaryPage() {
           </div>
         )}
 
-        <section className="mb-8">
-          <h2 className="mb-2 text-xl font-semibold">Emotions (0-10)</h2>
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-            {(!skillsQuery.data && getByDate.isLoading) && (
-              <>
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="flex items-center justify-between gap-2 rounded border p-2">
-                    <span className="w-28 animate-pulse rounded bg-gray-200" style={{ height: 16 }} />
-                    <span className="grow animate-pulse rounded bg-gray-200" style={{ height: 8 }} />
-                    <span className="w-6" />
-                  </div>
-                ))}
-              </>
-            )}
-            {Object.keys(emotions).map((k) => (
-              <div key={k} className="flex items-center justify-between gap-2 rounded border p-2">
-                <div className="flex w-28 items-center gap-1">
-                  <label className="text-sm font-medium" title={`Rate ${EMOTION_LABELS[k as Emotion].toLowerCase()} from 0 (none) to 10 (extreme).`}>
-                    {EMOTION_LABELS[k as Emotion]}
-                  </label>
-                  <InfoIcon title={`Rate ${EMOTION_LABELS[k as Emotion].toLowerCase()} from 0 (none) to 10 (extreme).`} />
-                </div>
-                <input
-                  type="range"
-                  min={0}
-                  max={10}
-                  value={(emotions as any)[k]}
-                  onChange={(e) =>
-                    setEmotions((prev) => ({ ...(prev as any), [k]: Number(e.target.value) }))
-                  }
-                  title={`Rate ${EMOTION_LABELS[k as Emotion].toLowerCase()} from 0 (none) to 10 (extreme). Current: ${(emotions as any)[k]}`}
-                />
-                <span className="w-6 text-right text-sm">{(emotions as any)[k]}</span>
-              </div>
-            ))}
-          </div>
-        </section>
+        <EmotionSliders
+          emotions={emotions}
+          onChange={(key, value) => setEmotions((prev) => ({ ...(prev as any), [key]: value }))}
+          isLoading={!skillsQuery.data && getByDate.isLoading}
+        />
 
-        <section className="mb-8">
-          <h2 className="mb-2 text-xl font-semibold">Urges (0-5)</h2>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {Object.entries(urges).map(([k, v]) => (
-              <div key={k} className="rounded border p-3">
-                <div className="mb-2 flex items-center justify-between">
-                  <div className="flex items-center gap-1">
-                    <span className="font-medium">{URGE_LABELS[k as Urge]}</span>
-                    <InfoIcon title={`Track your urge: ${URGE_LABELS[k as Urge].toLowerCase()}. Set intensity and whether you acted on it.`} />
-                  </div>
-                  <label className="flex items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={v.actedOn}
-                      onChange={(e) =>
-                        setUrges((prev) => ({
-                          ...(prev as any),
-                          [k]: { ...(prev as any)[k], actedOn: e.target.checked },
-                        }))
-                      }
-                      title={`Mark if you acted on the ${k.toLowerCase()} urge today.`}
-                    />
-                    Acted on
-                  </label>
-                </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="range"
-                    min={0}
-                    max={5}
-                    value={v.intensity}
-                    onChange={(e) =>
-                      setUrges((prev) => ({
-                        ...(prev as any),
-                        [k]: { ...(prev as any)[k], intensity: Number(e.target.value) },
-                      }))
-                    }
-                    title={`Set ${URGE_LABELS[k as Urge].toLowerCase()} urge intensity from 0 (none) to 5 (strongest). Current: ${v.intensity}`}
-                  />
-                  <span className="w-6 text-right text-sm">{v.intensity}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
+        <UrgeTracker
+          urges={urges}
+          onToggleActed={(key, acted) => setUrges((prev) => ({ ...(prev as any), [key]: { ...(prev as any)[key], actedOn: acted } }))}
+          onChangeIntensity={(key, intensity) => setUrges((prev) => ({ ...(prev as any), [key]: { ...(prev as any)[key], intensity } }))}
+        />
 
-        <section className="mb-8">
-          <h2 className="mb-2 text-xl font-semibold">Skills Used</h2>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {Object.entries(skillsQuery.data ?? {}).map(([module, skills]) => (
-              <div key={module} className="rounded border p-3">
-                <div className="mb-2 flex items-center gap-1">
-                  <h3 className="font-medium">{SKILL_MODULE_LABELS[module as string] ?? module}</h3>
-                  <InfoIcon title="Check the DBT skills you used today." />
-                </div>
-                <div className="flex flex-col gap-1">
-                  {(skills as any).map((s: any) => (
-                    <label key={s.id} className="flex items-center gap-2 text-sm">
-                      <input
-                        type="checkbox"
-                        checked={selectedSkills.includes(s.name)}
-                        onChange={(e) =>
-                          setSelectedSkills((prev) =>
-                            e.target.checked
-                              ? [...prev, s.name]
-                              : prev.filter((n) => n !== s.name)
-                          )
-                        }
-                      />
-                      <span className="flex items-center gap-1">
-                        {s.name}
-                        <InfoIcon title={`${s.name}: ${s.description ?? "DBT skill"}`} />
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
+        <SkillsCheckList
+          groupedSkills={(skillsQuery.data as any) ?? {}}
+          selected={selectedSkills}
+          onToggle={(name, checked) =>
+            setSelectedSkills((prev) => (checked ? [...prev, name] : prev.filter((n) => n !== name)))
+          }
+        />
 
-        <section className="mb-8">
-          <div className="mb-2 flex items-center gap-1">
-            <h2 className="text-xl font-semibold">Notes</h2>
-            <InfoIcon title="Optional notes for today: triggers, events, progress, or anything else you'd like to remember." />
-          </div>
-          <textarea
-            className="w-full rounded border p-3"
-            rows={4}
-            placeholder="Notes..."
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            title="Optional notes for today: triggers, events, progress, or anything else you'd like to remember."
-          />
-        </section>
+        <NotesSection value={notes} onChange={setNotes} />
 
-        <div className="flex items-center gap-3">
-          <button
-            className="rounded bg-indigo-600 px-4 py-2 text-white disabled:opacity-50"
-            onClick={() => void handleSave()}
-            disabled={upsert.isPending}
-            title={`Save or update your diary entry for ${date}.`}
-          >
-            {upsert.isPending ? "Saving…" : "Save"}
-          </button>
-          <button
-            className="rounded border border-gray-300 px-4 py-2 text-gray-800 hover:bg-gray-50"
-            onClick={handleReset}
-            type="button"
-            title="Reset all fields to blank/defaults for this date. This does not delete saved data until you save again."
-          >
-            Reset
-          </button>
-          {upsert.isSuccess && <span className="text-sm text-green-700">Saved</span>}
-          {upsert.isError && <span className="text-sm text-red-700">Error saving</span>}
-        </div>
+        <FormActions
+          isSaving={upsert.isPending}
+          onSave={() => void handleSave()}
+          onReset={handleReset}
+          saved={upsert.isSuccess}
+          error={upsert.isError}
+        />
       </main>
     </>
   );
 }
 
-function Tooltip({ content, children }: { content: string; children: React.ReactNode }) {
-  return (
-    <span className="relative inline-flex items-center group">
-      {children}
-      <span className="pointer-events-none absolute left-1/2 top-0 z-20 -translate-x-1/2 -translate-y-full whitespace-pre rounded bg-gray-900 px-2 py-1 text-xs text-white opacity-0 shadow transition-opacity duration-150 group-hover:opacity-100">
-        {content}
-      </span>
-    </span>
-  );
-}
-
-function InfoIcon({ title }: { title: string }) {
-  return (
-    <Tooltip content={title}>
-      <span
-        className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-gray-300 text-[10px] font-semibold text-gray-500 hover:bg-gray-50"
-        role="img"
-        aria-label="Info"
-      >
-        i
-      </span>
-    </Tooltip>
-  );
-}
-
-
+// Tooltip and InfoIcon moved to reusable components
