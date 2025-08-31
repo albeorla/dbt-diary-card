@@ -14,8 +14,20 @@ if [ ! -f "package.json" ] || [ ! -d "prisma" ]; then
     exit 1
 fi
 
-# Load production database URL
-PROD_DB_URL="postgresql://diarycard001:.tYX|U1~r787uSK[QIxoDj#D6_>h@diarycard001.cluster-ciqxffdrwe90.us-east-1.rds.amazonaws.com:5432/diarycard001?schema=public&sslmode=require"
+# Resolve production database URL from env/args (never hardcode secrets)
+# Usage:
+#   PROD_DB_URL=postgresql://user:pass@host:5432/db?schema=public ./scripts/migrate-prod.sh
+#   or: ./scripts/migrate-prod.sh postgresql://user:pass@host:5432/db?schema=public
+
+PROD_DB_URL_INPUT="$1"
+PROD_DB_URL="${PROD_DB_URL_INPUT:-${PROD_DB_URL:-${DATABASE_URL_PROD:-}}}"
+
+if [ -z "$PROD_DB_URL" ]; then
+  echo "❌ Error: Please provide your production database URL via argument or env var."
+  echo "   Example:"
+  echo "     PROD_DB_URL=postgresql://<user>:<password>@<host>:5432/<db>?schema=public ./scripts/migrate-prod.sh"
+  exit 1
+fi
 
 echo "📦 Installing dependencies..."
 npm install --silent

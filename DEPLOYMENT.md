@@ -16,7 +16,10 @@ Since the production database (AWS RDS) is not accessible from GitHub Actions du
 
 2. **Or manually:**
    ```bash
-   DATABASE_URL="postgresql://diarycard001:.tYX|U1~r787uSK[QIxoDj#D6_>h@diarycard001.cluster-ciqxffdrwe90.us-east-1.rds.amazonaws.com:5432/diarycard001?schema=public&sslmode=require" \
+   # Use an environment variable for your production DB URL (do NOT hardcode secrets)
+   # Example format (replace with your real values):
+   #   postgresql://<user>:<password>@<host>:5432/<database>?schema=public&sslmode=require
+   DATABASE_URL="postgresql://<user>:<password>@<host>:5432/<database>?schema=public&sslmode=require" \
    npx prisma migrate deploy
    ```
 

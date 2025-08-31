@@ -14,6 +14,7 @@ import superjson from "superjson";
 import { ZodError } from "zod";
 
 import { auth } from "~/server/auth";
+import { env } from "~/env";
 import { db } from "~/server/db";
 
 /**
@@ -144,7 +145,9 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
   const result = await next();
 
   const end = Date.now();
-  console.log(`[TRPC] ${path} took ${end - start}ms to execute`);
+  if (env.NODE_ENV === "development") {
+    console.log(`[TRPC] ${path} took ${end - start}ms to execute`);
+  }
 
   return result;
 });

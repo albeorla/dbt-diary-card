@@ -12,3 +12,5 @@ build
 dist
 coverage
 *.log
+*.har
+VERCEL_ENV_VARS.txt

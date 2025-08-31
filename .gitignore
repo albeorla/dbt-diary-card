@@ -32,6 +32,8 @@ next-env.d.ts
 # misc
 .DS_Store
 *.pem
+*.har
+VERCEL_ENV_VARS.txt
 
 # debug
 npm-debug.log*
