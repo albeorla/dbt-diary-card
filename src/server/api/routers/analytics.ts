@@ -41,6 +41,7 @@ export const analyticsRouter = createTRPCRouter({
         where: {
           entry: { userId: ctx.session.user.id, entryDate: { gte: new Date(input.startDate), lte: new Date(input.endDate) } },
         },
+        include: { entry: { select: { entryDate: true } } },
       });
       return urges;
     }),
@@ -58,5 +59,4 @@ export const analyticsRouter = createTRPCRouter({
       return entries;
     }),
 });
-
 

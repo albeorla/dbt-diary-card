@@ -34,8 +34,10 @@ export function UrgeHeatmap({
 
   const matrix = useMemo(() => {
     const m = new Map<string, number>();
-    items.forEach((u) => {
-      const key = `${u.urgeType}:${toYMD(new Date(u.entry.entryDate))}`;
+    items.forEach((u: any) => {
+      const rawDate = u?.entry?.entryDate ?? (u?.entryDate ?? null);
+      if (!rawDate) return; // skip if date missing
+      const key = `${u.urgeType}:${toYMD(new Date(rawDate))}`;
       const prev = m.get(key) ?? 0;
       m.set(key, Math.max(prev, u.intensity));
     });
@@ -87,4 +89,3 @@ export function UrgeHeatmap({
 }
 
 export default UrgeHeatmap;
-
