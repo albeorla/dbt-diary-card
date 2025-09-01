@@ -40,5 +40,5 @@
     "next-env.d.ts",
     "Default/types/**/*.ts"
   ],
-  "exclude": ["node_modules", "scripts/**/*.js"]
+  "exclude": ["node_modules", "scripts/**/*.js", "Default/**"]
 }
