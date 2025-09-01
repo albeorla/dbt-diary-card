@@ -14,11 +14,17 @@ const CANONICAL_HOST = (() => {
 export function middleware(req: NextRequest) {
   // Skip redirects for API and Next.js internals to avoid breaking auth/cookies
   const { pathname } = new URL(req.url);
-  // Allow TRPC calls to proceed without host canonicalization
-  if (pathname.startsWith('/_next') || pathname.startsWith('/api/trpc')) {
+  // Allow framework internals and auth/trpc to proceed without host canonicalization
+  // IMPORTANT: Skip /api/auth to keep the entire OAuth flow on the same host.
+  // NextAuth sets host-only __Host- cookies for CSRF which do not cross subdomains.
+  if (
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/api/trpc') ||
+    pathname.startsWith('/api/auth')
+  ) {
     return NextResponse.next();
   }
-  // Do NOT skip for /api/auth so that OAuth sign-in + callback are on the canonical host
+  // All other routes may be canonicalized in production
   const host = req.headers.get('host') || '';
   // If a canonical host is configured, redirect any non-canonical host to it
   if (process.env.NODE_ENV === 'production' && host && CANONICAL_HOST && host !== CANONICAL_HOST) {

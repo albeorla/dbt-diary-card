@@ -12,7 +12,10 @@
       "Bash(gh run watch:*)",
       "Bash(gh pr comment:*)",
       "Bash(gh pr checks:*)",
-      "Bash(gh workflow run:*)"
+      "Bash(gh workflow run:*)",
+      "Bash(npm run build:*)",
+      "Bash(TEST_AUTH_SECRET=dev npm run test:e2e -- --project=chromium e2e/health.spec.ts)",
+      "Bash(TEST_AUTH_SECRET=dev npm run test:e2e -- --project=chromium e2e/auth.spec.ts)"
     ],
     "deny": [],
     "ask": []

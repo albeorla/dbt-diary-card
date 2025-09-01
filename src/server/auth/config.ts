@@ -208,7 +208,7 @@ export const authOptions: NextAuthOptions = {
     },
   },
   secret: env.AUTH_SECRET,
-  debug: env.NODE_ENV !== 'production', // Only debug in development
+  debug: env.AUTH_DEBUG, // Toggle via env
   logger: {
     error: (code, metadata) => {
       console.error('[AUTH ERROR]', code, metadata);
@@ -217,9 +217,7 @@ export const authOptions: NextAuthOptions = {
       console.warn('[AUTH WARN]', code);
     },
     debug: (code, metadata) => {
-      if (env.NODE_ENV !== 'production') {
-        console.log('[AUTH DEBUG]', code, metadata);
-      }
+      if (env.AUTH_DEBUG) console.log('[AUTH DEBUG]', code, metadata);
     },
   },
 };
