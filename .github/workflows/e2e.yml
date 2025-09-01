@@ -67,11 +67,10 @@ jobs:
           fi
       - name: Install dependencies
         run: npm ci
-      - name: Download Next build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: next-build
-          path: .next
+      - name: Build app
+        run: npm run build
+        env:
+          AUTH_SECRET: testsecret
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
       - name: Generate Prisma Client
