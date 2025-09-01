@@ -26,8 +26,13 @@ jobs:
         run: npm run typecheck
       - name: Lint
         run: npm run lint
+        env:
+          SKIP_ENV_VALIDATION: '1'
+          NODE_ENV: development
       - name: Build
         run: npm run build
+        env:
+          AUTH_SECRET: testsecret
       - name: Upload Next build artifact
         uses: actions/upload-artifact@v4
         with:
