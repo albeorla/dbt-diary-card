@@ -29,6 +29,15 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
+      - name: Select Database URL (Neon or local)
+        run: |
+          if [ -n "${{ secrets.NEON_DEV_DATABASE_URL }}" ]; then 
+            echo "Using Neon dev database";
+            echo "DATABASE_URL=${{ secrets.NEON_DEV_DATABASE_URL }}?schema=ci_${{ github.run_id }}" >> $GITHUB_ENV;
+          else 
+            echo "Using local Postgres service";
+            echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/postgres?schema=public" >> $GITHUB_ENV;
+          fi
       - name: Install dependencies
         run: npm ci
       - name: Install Playwright Browsers
@@ -40,16 +49,15 @@ jobs:
       - name: Generate Prisma Client
         run: npx prisma generate
       - name: Prepare Database (push schema + seed)
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres?schema=public
         run: |
+          echo "Using DB: $DATABASE_URL"
           npx prisma db push
           npm run db:seed --if-present
       - name: Run E2E
         env:
           NEXTAUTH_URL: http://localhost:3000
           AUTH_SECRET: testsecret
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres?schema=public
+          DATABASE_URL: ${{ env.DATABASE_URL }}
           TEST_AUTH_SECRET: dev
         run: |
           npm run test:e2e -- --reporter=dot
