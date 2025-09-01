@@ -10,6 +10,7 @@ export const env = createEnv({
     AUTH_SECRET: process.env.NODE_ENV === 'production' ? z.string() : z.string().optional(),
     AUTH_GOOGLE_ID: z.string().default('placeholder'),
     AUTH_GOOGLE_SECRET: z.string().default('placeholder'),
+    AUTH_DEBUG: z.coerce.boolean().default(false),
     DATABASE_URL: z
       .string()
       .default('postgresql://postgres:password@localhost:5432/dbt_diary?schema=public'),
@@ -41,6 +42,7 @@ export const env = createEnv({
     AUTH_SECRET: process.env.AUTH_SECRET,
     AUTH_GOOGLE_ID: process.env.AUTH_GOOGLE_ID,
     AUTH_GOOGLE_SECRET: process.env.AUTH_GOOGLE_SECRET,
+    AUTH_DEBUG: process.env.AUTH_DEBUG,
     DATABASE_URL: process.env.DATABASE_URL,
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,

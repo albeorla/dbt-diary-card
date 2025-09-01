@@ -1,5 +1,9 @@
 # 🔧 Complete Fix for Google OAuth Authentication Issues
 
+Note for local development
+
+- For local dev across ports 3000–3002, leave `NEXTAUTH_URL` unset and use the new dev scripts (`npm run dev:3000|3001|3002`). See `LOCAL_DEV.md`.
+
 ## Problem Summary
 
 Your app successfully initiates Google OAuth, receives the authorization code, but fails with a 401 Unauthorized error when trying to access protected endpoints. The root cause is improper session creation/persistence in Vercel's serverless environment.
@@ -146,8 +150,8 @@ vercel --prod
    https://dbt-diarycard.vercel.app/api/auth/debug
    ```
 
-   - Should show environment variables are set
-   - Database should be "connected"
+   - Should show key env/config flags (sanitized)
+   - If running in production, include header `x-debug-auth: <first 8 chars of AUTH_SECRET>`
 
 4. Try signing in with Google:
    - Go to https://dbt-diarycard.vercel.app

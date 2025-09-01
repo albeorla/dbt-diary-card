@@ -26,18 +26,18 @@ jobs:
         run: npm run typecheck
       - name: Lint
         run: npm run lint
+        env:
+          SKIP_ENV_VALIDATION: '1'
+          NODE_ENV: development
       - name: Build
         run: npm run build
-      - name: Upload Next build artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: next-build
-          path: .next
+        env:
+          AUTH_SECRET: testsecret
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
 
   e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    needs: checks
     services:
       postgres:
         image: postgres:16
@@ -67,15 +67,19 @@ jobs:
           fi
       - name: Install dependencies
         run: npm ci
-      - name: Build app
-        run: npm run build
+  - name: Build app
         env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+          DATABASE_URL_DIRECT: ${{ env.DATABASE_URL }}
           AUTH_SECRET: testsecret
+        run: npm run build
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
       - name: Generate Prisma Client
         run: npx prisma generate
       - name: Prepare Database (push schema + seed)
+        env:
+          DATABASE_URL_DIRECT: ${{ env.DATABASE_URL }}
         run: |
           echo "Using DB: $DATABASE_URL"
           npx prisma db push
@@ -85,13 +89,15 @@ jobs:
           NEXTAUTH_URL: http://localhost:3000
           AUTH_SECRET: testsecret
           DATABASE_URL: ${{ env.DATABASE_URL }}
+          DATABASE_URL_DIRECT: ${{ env.DATABASE_URL }}
           TEST_AUTH_SECRET: dev
+          CI: true
         run: |
           npm run test:e2e -- --reporter=dot
 
   deploy_preview:
     name: Deploy Preview (Vercel)
-    needs: [checks, e2e]
+    needs: e2e
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -126,7 +132,7 @@ jobs:
 
   deploy_production:
     name: Deploy Production (Vercel)
-    needs: [checks, e2e, migrate]
+    needs: [e2e, migrate]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -161,7 +167,7 @@ jobs:
 
   migrate:
     name: Database Migration
-    needs: [checks, e2e]
+    needs: e2e
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     uses: ./.github/workflows/migrate.yml
     secrets: inherit

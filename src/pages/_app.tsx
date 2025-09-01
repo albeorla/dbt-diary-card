@@ -5,7 +5,7 @@ import { useSession, signIn, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useEffect, useRef, useState } from 'react';
-import { Geist } from 'next/font/google';
+import { Inter } from 'next/font/google';
 import { api } from '~/utils/api';
 import dynamic from 'next/dynamic';
 import Head from 'next/head';
@@ -24,7 +24,7 @@ import IconButton from '@mui/material/IconButton';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
 
-const geist = Geist({
+const inter = Inter({
   subsets: ['latin'],
 });
 
@@ -76,19 +76,22 @@ const MyApp: AppType<{ session: Session | null }> = ({
     <SessionProvider session={session}>
       <ThemeProvider theme={muiTheme}>
         <CssBaseline />
-        <div className={geist.className}>
+        <div className={inter.className}>
           <Head>
             <title>DBT Diary Card</title>
           </Head>
           <AppBar
             position="sticky"
-            color="inherit"
+            color="transparent"
             elevation={0}
             sx={{
               borderBottom: 1,
               borderColor: 'divider',
               backdropFilter: 'blur(6px)',
-              bgcolor: 'rgba(255,255,255,0.9)',
+              bgcolor:
+                muiTheme.palette.mode === 'dark'
+                  ? 'rgba(2, 6, 23, 0.7)'
+                  : 'rgba(248, 250, 252, 0.7)',
             }}
           >
             <Toolbar sx={{ px: 2 }}>

@@ -13,9 +13,14 @@ console.log('='.repeat(50));
 
 // Check required environment variables
 const requiredVars = {
+  // In development, NEXTAUTH_URL is optional (NextAuth will use the incoming host/port).
+  // In production, it should be set to the canonical https URL.
   NEXTAUTH_URL: {
-    check: (val) => val && val.startsWith('http'),
-    error: 'Must be a valid URL starting with http:// or https://',
+    check: (val) => (process.env.NODE_ENV === 'production' ? val && val.startsWith('http') : true),
+    error:
+      process.env.NODE_ENV === 'production'
+        ? 'Must be a valid URL starting with http:// or https://'
+        : 'Optional in development (unset to support multiple local ports)',
     example: 'https://dbt-diarycard.vercel.app or http://localhost:3000',
   },
   AUTH_SECRET: {
