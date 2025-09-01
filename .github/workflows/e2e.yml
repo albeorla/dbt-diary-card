@@ -34,20 +34,10 @@ jobs:
         env:
           AUTH_SECRET: testsecret
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
-      - name: List build output
-        run: ls -la
-      - name: Upload Next build artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: next-build
-          path: .next
-          if-no-files-found: error
-          include-hidden-files: true
 
   e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    needs: checks
     services:
       postgres:
         image: postgres:16
@@ -77,11 +67,12 @@ jobs:
           fi
       - name: Install dependencies
         run: npm ci
-      - name: Download Next build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: next-build
-          path: .next
+      - name: Build app
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
+          DATABASE_URL_DIRECT: ${{ env.DATABASE_URL }}
+          AUTH_SECRET: testsecret
+        run: npm run build
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
       - name: Generate Prisma Client
@@ -106,7 +97,7 @@ jobs:
 
   deploy_preview:
     name: Deploy Preview (Vercel)
-    needs: [checks, e2e]
+    needs: e2e
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -141,7 +132,7 @@ jobs:
 
   deploy_production:
     name: Deploy Production (Vercel)
-    needs: [checks, e2e, migrate]
+    needs: [e2e, migrate]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -176,7 +167,7 @@ jobs:
 
   migrate:
     name: Database Migration
-    needs: [checks, e2e]
+    needs: e2e
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     uses: ./.github/workflows/migrate.yml
     secrets: inherit
