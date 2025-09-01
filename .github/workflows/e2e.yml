@@ -42,6 +42,7 @@ jobs:
           name: next-build
           path: .next
           if-no-files-found: error
+          include-hidden-files: true
 
   e2e:
     runs-on: ubuntu-latest
