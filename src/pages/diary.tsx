@@ -1,14 +1,18 @@
-import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/router";
-import Head from "next/head";
-import { useSession, signIn } from "next-auth/react";
-import { api } from "~/utils/api";
-import { EmotionSliders, EMOTION_LABELS, type Emotion } from "~/components/diary-card/EmotionSliders";
-import { UrgeTracker, URGE_LABELS, type Urge } from "~/components/diary-card/UrgeTracker";
-import { SkillsCheckList, SKILL_MODULE_LABELS } from "~/components/diary-card/SkillsCheckList";
-import NotesSection from "~/components/diary-card/NotesSection";
-import FormActions from "~/components/diary-card/FormActions";
-import InfoIcon from "~/components/ui/InfoIcon";
+import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/router';
+import Head from 'next/head';
+import { useSession, signIn } from 'next-auth/react';
+import { api } from '~/utils/api';
+import {
+  EmotionSliders,
+  EMOTION_LABELS,
+  type Emotion,
+} from '~/components/diary-card/EmotionSliders';
+import { UrgeTracker, URGE_LABELS, type Urge } from '~/components/diary-card/UrgeTracker';
+import { SkillsCheckList, SKILL_MODULE_LABELS } from '~/components/diary-card/SkillsCheckList';
+import NotesSection from '~/components/diary-card/NotesSection';
+import FormActions from '~/components/diary-card/FormActions';
+import InfoIcon from '~/components/ui/InfoIcon';
 
 // Types and labels are imported from components
 
@@ -23,7 +27,7 @@ export default function DiaryPage() {
     return `${y}-${m}-${day}`;
   }, []);
   const [date, setDate] = useState<string>(todayStr);
-  const [notes, setNotes] = useState<string>("");
+  const [notes, setNotes] = useState<string>('');
   const [emotions, setEmotions] = useState<Record<Emotion, number>>({
     SADNESS: 0,
     ANGER: 0,
@@ -52,7 +56,7 @@ export default function DiaryPage() {
   const skillsQuery = api.skills.getAll.useQuery();
   const getByDate = api.diary.getByDate.useQuery(
     { date },
-    { enabled: status === "authenticated" && !!date }
+    { enabled: status === 'authenticated' && !!date },
   );
   const upsert = api.diary.upsert.useMutation({
     onSuccess: async () => {
@@ -71,7 +75,7 @@ export default function DiaryPage() {
   useEffect(() => {
     if (!getByDate.data) return;
     const entry = getByDate.data;
-    setNotes(entry?.notes ?? "");
+    setNotes(entry?.notes ?? '');
     const emotionState = { ...emotions };
     entry?.emotionRatings?.forEach((e: any) => {
       emotionState[e.emotion as Emotion] = e.rating;
@@ -99,12 +103,12 @@ export default function DiaryPage() {
       skills: selectedSkills,
     });
     // After save, navigate to history
-    await router.push("/history");
+    await router.push('/history');
   };
 
   const handleReset = () => {
-    if (!window.confirm("Reset all fields for today? Unsaved changes will be lost.")) return;
-    setNotes("");
+    if (!window.confirm('Reset all fields for today? Unsaved changes will be lost.')) return;
+    setNotes('');
     setEmotions({
       SADNESS: 0,
       ANGER: 0,
@@ -131,12 +135,15 @@ export default function DiaryPage() {
 
   const [showSaved, setShowSaved] = useState(false);
 
-  if (status === "unauthenticated") {
+  if (status === 'unauthenticated') {
     return (
       <main className="flex min-h-screen items-center justify-center">
         <div className="text-center">
           <p className="mb-4">You must sign in to view your diary card.</p>
-          <button className="rounded bg-indigo-600 px-4 py-2 text-white" onClick={() => void signIn()}>
+          <button
+            className="rounded bg-indigo-600 px-4 py-2 text-white"
+            onClick={() => void signIn()}
+          >
             Sign in
           </button>
         </div>
@@ -160,7 +167,7 @@ export default function DiaryPage() {
             ← Back
           </button>
           <h1 className="text-3xl font-bold">
-            {session?.user?.name ? `${session.user.name}'s Diary Card` : "Diary Card"}
+            {session?.user?.name ? `${session.user.name}'s Diary Card` : 'Diary Card'}
           </h1>
           <span className="w-16" />
         </div>
@@ -195,15 +202,24 @@ export default function DiaryPage() {
 
         <UrgeTracker
           urges={urges}
-          onToggleActed={(key, acted) => setUrges((prev) => ({ ...(prev as any), [key]: { ...(prev as any)[key], actedOn: acted } }))}
-          onChangeIntensity={(key, intensity) => setUrges((prev) => ({ ...(prev as any), [key]: { ...(prev as any)[key], intensity } }))}
+          onToggleActed={(key, acted) =>
+            setUrges((prev) => ({
+              ...(prev as any),
+              [key]: { ...(prev as any)[key], actedOn: acted },
+            }))
+          }
+          onChangeIntensity={(key, intensity) =>
+            setUrges((prev) => ({ ...(prev as any), [key]: { ...(prev as any)[key], intensity } }))
+          }
         />
 
         <SkillsCheckList
           groupedSkills={(skillsQuery.data as any) ?? {}}
           selected={selectedSkills}
           onToggle={(name, checked) =>
-            setSelectedSkills((prev) => (checked ? [...prev, name] : prev.filter((n) => n !== name)))
+            setSelectedSkills((prev) =>
+              checked ? [...prev, name] : prev.filter((n) => n !== name),
+            )
           }
         />
 

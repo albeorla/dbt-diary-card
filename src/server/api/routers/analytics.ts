@@ -1,10 +1,16 @@
-import { z } from "zod";
+import { z } from 'zod';
 
-import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from '~/server/api/trpc';
 
 export const analyticsRouter = createTRPCRouter({
   getEmotionTrends: protectedProcedure
-    .input(z.object({ startDate: z.string(), endDate: z.string(), emotions: z.array(z.string()).optional() }))
+    .input(
+      z.object({
+        startDate: z.string(),
+        endDate: z.string(),
+        emotions: z.array(z.string()).optional(),
+      }),
+    )
     .query(async ({ ctx, input }) => {
       const { startDate, endDate, emotions } = input;
       const ratings = await ctx.db.emotionRating.findMany({
@@ -17,7 +23,11 @@ export const analyticsRouter = createTRPCRouter({
         },
         select: { emotion: true, rating: true, entry: { select: { entryDate: true } } },
       });
-      return ratings.map((r) => ({ emotion: r.emotion, rating: r.rating, date: r.entry.entryDate }));
+      return ratings.map((r) => ({
+        emotion: r.emotion,
+        rating: r.rating,
+        date: r.entry.entryDate,
+      }));
     }),
 
   getSkillsUsage: protectedProcedure
@@ -25,7 +35,10 @@ export const analyticsRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const used = await ctx.db.skillUsed.findMany({
         where: {
-          entry: { userId: ctx.session.user.id, entryDate: { gte: new Date(input.startDate), lte: new Date(input.endDate) } },
+          entry: {
+            userId: ctx.session.user.id,
+            entryDate: { gte: new Date(input.startDate), lte: new Date(input.endDate) },
+          },
         },
         include: { skill: true },
       });
@@ -39,7 +52,10 @@ export const analyticsRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const urges = await ctx.db.urgeBehavior.findMany({
         where: {
-          entry: { userId: ctx.session.user.id, entryDate: { gte: new Date(input.startDate), lte: new Date(input.endDate) } },
+          entry: {
+            userId: ctx.session.user.id,
+            entryDate: { gte: new Date(input.startDate), lte: new Date(input.endDate) },
+          },
         },
         include: { entry: { select: { entryDate: true } } },
       });
@@ -59,4 +75,3 @@ export const analyticsRouter = createTRPCRouter({
       return entries;
     }),
 });
-

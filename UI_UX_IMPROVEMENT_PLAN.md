@@ -5,6 +5,7 @@
 A web-based DBT (Dialectical Behavior Therapy) diary card application that follows standard DBT diary card format for daily mood, behavior, and skills tracking with database persistence and analytics.
 
 ### Goals
+
 - Replicate traditional paper DBT diary cards in digital format
 - Track emotions, urges/behaviors, and DBT skills daily
 - Provide insights through data visualization
@@ -35,7 +36,7 @@ model User {
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
   diaryEntries  DiaryEntry[]
-  
+
   @@map("users")
 }
 
@@ -50,7 +51,7 @@ model DiaryEntry {
   skillsUsed      SkillUsed[]
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
-  
+
   @@unique([userId, entryDate])
   @@map("diary_entries")
 }
@@ -61,7 +62,7 @@ model EmotionRating {
   entry       DiaryEntry  @relation(fields: [entryId], references: [id], onDelete: Cascade)
   emotion     EmotionType
   rating      Int         @db.SmallInt // 0-10 scale
-  
+
   @@unique([entryId, emotion])
   @@map("emotion_ratings")
 }
@@ -73,7 +74,7 @@ model UrgeBehavior {
   urgeType    UrgeType
   intensity   Int         @db.SmallInt // 0-5 scale
   actedOn     Boolean     @default(false)
-  
+
   @@unique([entryId, urgeType])
   @@map("urge_behaviors")
 }
@@ -85,7 +86,7 @@ model SkillUsed {
   skillId     String
   skill       DBTSkill    @relation(fields: [skillId], references: [id])
   used        Boolean     @default(true)
-  
+
   @@unique([entryId, skillId])
   @@map("skills_used")
 }
@@ -96,7 +97,7 @@ model DBTSkill {
   name        String
   description String?
   skillsUsed  SkillUsed[]
-  
+
   @@map("dbt_skills")
 }
 
@@ -139,32 +140,38 @@ enum SkillModule {
 ```typescript
 export const diaryRouter = createTRPCRouter({
   // Create or update diary entry for a specific date
-  upsert: protectedProcedure
-    .input(createDiaryEntrySchema)
-    .mutation(({ ctx, input }) => { /* implementation */ }),
+  upsert: protectedProcedure.input(createDiaryEntrySchema).mutation(({ ctx, input }) => {
+    /* implementation */
+  }),
 
   // Get diary entry by date
-  getByDate: protectedProcedure
-    .input(z.object({ date: z.date() }))
-    .query(({ ctx, input }) => { /* implementation */ }),
+  getByDate: protectedProcedure.input(z.object({ date: z.date() })).query(({ ctx, input }) => {
+    /* implementation */
+  }),
 
   // Get entries for date range
   getRange: protectedProcedure
-    .input(z.object({ 
-      startDate: z.date(), 
-      endDate: z.date() 
-    }))
-    .query(({ ctx, input }) => { /* implementation */ }),
+    .input(
+      z.object({
+        startDate: z.date(),
+        endDate: z.date(),
+      }),
+    )
+    .query(({ ctx, input }) => {
+      /* implementation */
+    }),
 
   // Get recent entries
   getRecent: protectedProcedure
     .input(z.object({ limit: z.number().default(7) }))
-    .query(({ ctx, input }) => { /* implementation */ }),
+    .query(({ ctx, input }) => {
+      /* implementation */
+    }),
 
   // Delete entry
-  delete: protectedProcedure
-    .input(z.object({ id: z.string() }))
-    .mutation(({ ctx, input }) => { /* implementation */ }),
+  delete: protectedProcedure.input(z.object({ id: z.string() })).mutation(({ ctx, input }) => {
+    /* implementation */
+  }),
 });
 ```
 
@@ -174,33 +181,47 @@ export const diaryRouter = createTRPCRouter({
 export const analyticsRouter = createTRPCRouter({
   // Emotion trends over time
   getEmotionTrends: protectedProcedure
-    .input(z.object({ 
-      startDate: z.date(), 
-      endDate: z.date(),
-      emotions: z.array(z.nativeEnum(EmotionType)).optional()
-    }))
-    .query(({ ctx, input }) => { /* implementation */ }),
+    .input(
+      z.object({
+        startDate: z.date(),
+        endDate: z.date(),
+        emotions: z.array(z.nativeEnum(EmotionType)).optional(),
+      }),
+    )
+    .query(({ ctx, input }) => {
+      /* implementation */
+    }),
 
   // Skills usage frequency
   getSkillsUsage: protectedProcedure
-    .input(z.object({ 
-      startDate: z.date(), 
-      endDate: z.date() 
-    }))
-    .query(({ ctx, input }) => { /* implementation */ }),
+    .input(
+      z.object({
+        startDate: z.date(),
+        endDate: z.date(),
+      }),
+    )
+    .query(({ ctx, input }) => {
+      /* implementation */
+    }),
 
   // Urge patterns analysis
   getUrgePatterns: protectedProcedure
-    .input(z.object({ 
-      startDate: z.date(), 
-      endDate: z.date() 
-    }))
-    .query(({ ctx, input }) => { /* implementation */ }),
+    .input(
+      z.object({
+        startDate: z.date(),
+        endDate: z.date(),
+      }),
+    )
+    .query(({ ctx, input }) => {
+      /* implementation */
+    }),
 
   // Weekly summary
   getWeeklySummary: protectedProcedure
     .input(z.object({ weekStart: z.date() }))
-    .query(({ ctx, input }) => { /* implementation */ }),
+    .query(({ ctx, input }) => {
+      /* implementation */
+    }),
 });
 ```
 
@@ -209,13 +230,16 @@ export const analyticsRouter = createTRPCRouter({
 ```typescript
 export const skillsRouter = createTRPCRouter({
   // Get all DBT skills grouped by module
-  getAll: publicProcedure
-    .query(({ ctx }) => { /* implementation */ }),
+  getAll: publicProcedure.query(({ ctx }) => {
+    /* implementation */
+  }),
 
   // Get skills by module
   getByModule: publicProcedure
     .input(z.object({ module: z.nativeEnum(SkillModule) }))
-    .query(({ ctx, input }) => { /* implementation */ }),
+    .query(({ ctx, input }) => {
+      /* implementation */
+    }),
 });
 ```
 
@@ -276,65 +300,80 @@ src/pages/
 ## Implementation Timeline
 
 ### Phase 1: Foundation (Days 1-2)
+
 **Day 1:**
+
 - [ ] Initialize T3 app with all required packages
 - [ ] Configure PostgreSQL database (local + production)
 - [ ] Set up Prisma schema with all models
 - [ ] Configure NextAuth with Google/email providers
 
 **Day 2:**
+
 - [ ] Create database seed script for DBT skills
 - [ ] Set up basic layout components
 - [ ] Configure Tailwind with custom design tokens
 - [ ] Set up testing infrastructure (Jest, RTL, Playwright)
 
 ### Phase 2: API Layer (Days 3-4)
+
 **Day 3:**
+
 - [ ] Implement diary tRPC router with all procedures
 - [ ] Add input validation schemas with Zod
 - [ ] Create database queries with Prisma
 - [ ] Write unit tests for diary procedures
 
 **Day 4:**
+
 - [ ] Implement analytics tRPC router
 - [ ] Implement skills tRPC router
 - [ ] Add error handling and logging
 - [ ] Write integration tests for API layer
 
 ### Phase 3: Core Forms (Days 5-6)
+
 **Day 5:**
+
 - [ ] Build DiaryCardForm with React Hook Form
 - [ ] Create EmotionSliders component with validation
 - [ ] Build UrgeTracker with checkbox/slider combo
 - [ ] Implement auto-save functionality
 
 **Day 6:**
+
 - [ ] Build SkillsCheckList grouped by module
 - [ ] Add NotesSection with character limit
 - [ ] Implement form submission with optimistic updates
 - [ ] Add success/error feedback
 
 ### Phase 4: Views & Navigation (Days 7-8)
+
 **Day 7:**
+
 - [ ] Create CalendarView with entry indicators
 - [ ] Build WeekView with 7-day grid layout
 - [ ] Implement navigation between dates
 - [ ] Add quick entry modal from calendar
 
 **Day 8:**
+
 - [ ] Optimize for mobile responsiveness
 - [ ] Add keyboard navigation support
 - [ ] Implement loading states and skeletons
 - [ ] Add accessibility features (ARIA labels, focus management)
 
 ### Phase 5: Analytics & Features (Days 9-10)
+
 **Day 9:**
+
 - [ ] Build EmotionChart with Chart.js
 - [ ] Create SkillsFrequency bar chart
 - [ ] Implement UrgeHeatmap visualization
 - [ ] Build WeeklySummary dashboard cards
 
 **Day 10:**
+
 - [ ] Add PDF export functionality
 - [ ] Implement CSV data export
 - [ ] Add sharing capabilities (email, link)
@@ -344,17 +383,20 @@ src/pages/
 ## Testing Strategy
 
 ### Unit Tests
+
 - [ ] tRPC procedure testing with mock database
 - [ ] Component testing with React Testing Library
 - [ ] Utility function testing
 - [ ] Form validation testing
 
 ### Integration Tests
+
 - [ ] Database operations with test database
 - [ ] API route testing with supertest
 - [ ] Authentication flow testing
 
 ### End-to-End Tests
+
 - [ ] Complete diary entry workflow
 - [ ] Calendar navigation and entry viewing
 - [ ] Dashboard analytics viewing
@@ -363,17 +405,20 @@ src/pages/
 ## Deployment Plan
 
 ### Development Environment
+
 - [ ] Docker Compose with PostgreSQL
 - [ ] Environment variables setup
 - [ ] Hot reloading configuration
 
 ### Production Deployment
+
 - [ ] Vercel deployment configuration
 - [ ] PlanetScale database setup (or Railway PostgreSQL)
 - [ ] Environment variables configuration
 - [ ] Domain and SSL setup
 
 ### Monitoring & Analytics
+
 - [ ] Error tracking with Sentry
 - [ ] Performance monitoring
 - [ ] User analytics (privacy-compliant)
@@ -391,6 +436,7 @@ src/pages/
 ## Future Enhancements
 
 ### Phase 2 Features
+
 - [ ] Reminder notifications (email/push)
 - [ ] Data visualization improvements
 - [ ] Therapist sharing portal
@@ -399,6 +445,7 @@ src/pages/
 - [ ] Offline support with PWA
 
 ### Advanced Features
+
 - [ ] Machine learning insights
 - [ ] Pattern recognition alerts
 - [ ] Integration with wearable devices
@@ -500,4 +547,4 @@ GOOGLE_CLIENT_SECRET="your-google-client-secret"
 
 ---
 
-*This document serves as the single source of truth for the DBT Diary Card Dashboard implementation. Update as needed during development.*
+_This document serves as the single source of truth for the DBT Diary Card Dashboard implementation. Update as needed during development._

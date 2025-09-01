@@ -1,25 +1,44 @@
-import React from "react";
+import React, { useMemo } from 'react';
+import { Bar } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
 
-export function SkillsFrequency({
-  items,
-}: {
-  items: { name: string; count: number }[];
-}) {
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+
+export function SkillsFrequency({ items }: { items: { name: string; count: number }[] }) {
+  const data = useMemo(() => {
+    const labels = items.map((s) => s.name);
+    const counts = items.map((s) => s.count);
+    return {
+      labels,
+      datasets: [
+        {
+          label: 'Uses',
+          data: counts,
+          backgroundColor: '#10b981',
+        },
+      ],
+    };
+  }, [items]);
+  if (items.length === 0) return <div className="text-sm text-gray-500">No data</div>;
   return (
-    <div className="space-y-2">
-      {items.map((s) => (
-        <div key={s.name} className="flex items-center gap-3">
-          <span className="w-40 text-sm">{s.name}</span>
-          <div className="h-2 grow rounded bg-gray-100">
-            <div className="h-2 rounded bg-emerald-500" style={{ width: `${Math.min(100, s.count * 10)}%` }} />
-          </div>
-          <span className="w-10 text-right text-sm">{s.count}</span>
-        </div>
-      ))}
-      {items.length === 0 && <div className="text-sm text-gray-500">No data</div>}
-    </div>
+    <Bar
+      data={data}
+      options={{
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true } },
+        maintainAspectRatio: false,
+      }}
+      height={200}
+    />
   );
 }
 
 export default SkillsFrequency;
-

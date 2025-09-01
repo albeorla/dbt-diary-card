@@ -1,5 +1,5 @@
-import { createEnv } from "@t3-oss/env-nextjs";
-import { z } from "zod";
+import { createEnv } from '@t3-oss/env-nextjs';
+import { z } from 'zod';
 
 export const env = createEnv({
   /**
@@ -7,24 +7,21 @@ export const env = createEnv({
    * isn't built with invalid env vars.
    */
   server: {
-    AUTH_SECRET:
-      process.env.NODE_ENV === "production"
-        ? z.string()
-        : z.string().optional(),
-    AUTH_GOOGLE_ID: z.string().default("placeholder"),
-    AUTH_GOOGLE_SECRET: z.string().default("placeholder"),
-    DATABASE_URL: z.string().default("postgresql://postgres:password@localhost:5432/dbt_diary?schema=public"),
-    STRIPE_SECRET_KEY: z.string().default("***REMOVED***"),
-    STRIPE_WEBHOOK_SECRET: z.string().default("whsec_placeholder"),
+    AUTH_SECRET: process.env.NODE_ENV === 'production' ? z.string() : z.string().optional(),
+    AUTH_GOOGLE_ID: z.string().default('placeholder'),
+    AUTH_GOOGLE_SECRET: z.string().default('placeholder'),
+    DATABASE_URL: z
+      .string()
+      .default('postgresql://postgres:password@localhost:5432/dbt_diary?schema=public'),
+    STRIPE_SECRET_KEY: z.string().default('***REMOVED***'),
+    STRIPE_WEBHOOK_SECRET: z.string().default('whsec_placeholder'),
     NEXTAUTH_URL: z.string().url().optional(),
-    SMTP_HOST: z.string().default("smtp.gmail.com"),
+    SMTP_HOST: z.string().default('smtp.gmail.com'),
     SMTP_PORT: z.coerce.number().default(465),
-    SMTP_USER: z.string().default("placeholder@example.com"),
-    SMTP_PASS: z.string().default("placeholder"),
-    EMAIL_FROM: z.string().default("noreply@example.com"),
-    NODE_ENV: z
-      .enum(["development", "test", "production"])
-      .default("development"),
+    SMTP_USER: z.string().default('placeholder@example.com'),
+    SMTP_PASS: z.string().default('placeholder'),
+    EMAIL_FROM: z.string().default('noreply@example.com'),
+    NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   },
 
   /**
@@ -33,7 +30,7 @@ export const env = createEnv({
    * `NEXT_PUBLIC_`.
    */
   client: {
-    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().default("pk_test_placeholder"),
+    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().default('pk_test_placeholder'),
   },
 
   /**

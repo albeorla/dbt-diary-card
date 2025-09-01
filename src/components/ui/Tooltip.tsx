@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 
 export function Tooltip({ content, children }: { content: string; children: React.ReactNode }) {
   return (
@@ -12,4 +12,3 @@ export function Tooltip({ content, children }: { content: string; children: Reac
 }
 
 export default Tooltip;
-

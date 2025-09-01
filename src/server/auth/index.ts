@@ -1,6 +1,6 @@
-import NextAuth from "next-auth";
-import { getServerSession, type NextAuthOptions } from "next-auth";
-import { authOptions } from "./config";
+import NextAuth from 'next-auth';
+import { getServerSession, type NextAuthOptions } from 'next-auth';
+import { authOptions } from './config';
 
 export const auth = (req: any, res: any) => getServerSession(req, res, authOptions);
 export const handlers = NextAuth(authOptions);

@@ -1,6 +1,7 @@
 # 🔧 Complete Fix for Google OAuth Authentication Issues
 
 ## Problem Summary
+
 Your app successfully initiates Google OAuth, receives the authorization code, but fails with a 401 Unauthorized error when trying to access protected endpoints. The root cause is improper session creation/persistence in Vercel's serverless environment.
 
 ## Root Causes Identified
@@ -29,6 +30,7 @@ This creates `.env.production` with a secure AUTH_SECRET and proper configuratio
 **CRITICAL**: You need a cloud-hosted PostgreSQL database with connection pooling.
 
 #### Recommended: Neon (Free tier available)
+
 1. Sign up at [neon.tech](https://neon.tech)
 2. Create a new database
 3. Get the pooled connection string (includes `-pooler` in the hostname)
@@ -38,6 +40,7 @@ This creates `.env.production` with a secure AUTH_SECRET and proper configuratio
    ```
 
 #### Alternative: Supabase
+
 1. Create project at [supabase.com](https://supabase.com)
 2. Go to Settings → Database
 3. Use the "Connection Pooling" connection string (port 6543)
@@ -68,14 +71,14 @@ This creates `.env.production` with a secure AUTH_SECRET and proper configuratio
 3. Go to Settings → Environment Variables
 4. Add these variables (copy from `.env.production`):
 
-| Variable | Value | Notes |
-|----------|-------|-------|
-| `NEXTAUTH_URL` | `https://dbt-diarycard.vercel.app` | EXACT URL, no trailing slash |
-| `AUTH_SECRET` | (from .env.production) | 44-character secure string |
-| `AUTH_GOOGLE_ID` | `***REMOVED***` | Your OAuth client ID |
-| `AUTH_GOOGLE_SECRET` | (from Google Console) | Keep this secret! |
-| `DATABASE_URL` | (your Neon/Supabase URL) | Must include pooling params |
-| `NODE_ENV` | `production` | Required for production |
+| Variable             | Value                              | Notes                        |
+| -------------------- | ---------------------------------- | ---------------------------- |
+| `NEXTAUTH_URL`       | `https://dbt-diarycard.vercel.app` | EXACT URL, no trailing slash |
+| `AUTH_SECRET`        | (from .env.production)             | 44-character secure string   |
+| `AUTH_GOOGLE_ID`     | `***REMOVED***`                    | Your OAuth client ID         |
+| `AUTH_GOOGLE_SECRET` | (from Google Console)              | Keep this secret!            |
+| `DATABASE_URL`       | (your Neon/Supabase URL)           | Must include pooling params  |
+| `NODE_ENV`           | `production`                       | Required for production      |
 
 5. Select "Production" environment
 6. Click "Save" for each variable
@@ -121,6 +124,7 @@ git push origin main
 ```
 
 Or deploy manually:
+
 ```bash
 vercel --prod
 ```
@@ -129,15 +133,19 @@ vercel --prod
 
 1. **Clear ALL cookies** for `dbt-diarycard.vercel.app` in your browser
 2. Visit the verification endpoint:
+
    ```
    https://dbt-diarycard.vercel.app/api/auth/verify-oauth
    ```
+
    - Should show "✅ Configuration looks good!" if everything is set correctly
-   
+
 3. Check the debug endpoint:
+
    ```
    https://dbt-diarycard.vercel.app/api/auth/debug
    ```
+
    - Should show environment variables are set
    - Database should be "connected"
 
@@ -161,20 +169,24 @@ If issues persist, check Vercel logs:
 ## 🎯 What We Fixed
 
 ### 1. **Cookie Configuration** (Critical for Vercel)
+
 - Added explicit cookie settings with proper secure/httpOnly flags
 - Set domain to `.vercel.app` for production
 - Used `sameSite: "lax"` for same-origin requests
 
 ### 2. **Database Connection Pooling**
+
 - Added Prisma configuration for serverless environments
 - Limited connection pool to 1 connection per function
 - Added automatic cleanup on function termination
 
 ### 3. **Environment Detection**
+
 - Proper production detection based on NEXTAUTH_URL
 - Conditional secure cookie usage
 
 ### 4. **Enhanced Error Logging**
+
 - Added detailed logging throughout auth flow
 - Created debug endpoints for troubleshooting
 
@@ -188,6 +200,7 @@ If issues persist, check Vercel logs:
    - If missing, AUTH_SECRET might be wrong
 
 2. **Verify environment variables are set**:
+
    ```bash
    vercel env ls production
    ```
@@ -202,6 +215,7 @@ If issues persist, check Vercel logs:
 ### "Callback" Error?
 
 This means NextAuth can't process the OAuth callback:
+
 - NEXTAUTH_URL doesn't match actual URL
 - AUTH_SECRET is missing or wrong
 - Database connection failed during session creation
@@ -232,6 +246,7 @@ This means NextAuth can't process the OAuth callback:
    - Verify environment variables are loaded
 
 2. **Test Locally First**:
+
    ```bash
    # Create .env.local with same variables
    npm run dev
@@ -246,6 +261,7 @@ This means NextAuth can't process the OAuth callback:
 ## Final Notes
 
 The key insights from troubleshooting:
+
 - **Redirect URI must match EXACTLY** - even trailing slashes matter
 - **Serverless needs connection pooling** - or you'll exhaust connections
 - **Cookies need proper configuration** - for cross-site and secure contexts

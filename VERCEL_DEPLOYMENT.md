@@ -40,10 +40,12 @@ DATABASE_URL=postgresql://[user]:[password]@[host]:5432/[database]?pgbouncer=tru
 ### Step 3: Database Setup
 
 Your database must be:
+
 - **Cloud-hosted** (Vercel can't access localhost)
 - **Accessible from Vercel's IP ranges**
 
 Recommended providers:
+
 - [Neon](https://neon.tech/) - Works great with Vercel
 - [Supabase](https://supabase.com/)
 - [Vercel Postgres](https://vercel.com/docs/storage/vercel-postgres)
@@ -52,6 +54,7 @@ Recommended providers:
 ### Step 4: Redeploy
 
 After setting all environment variables:
+
 1. Go to Vercel Dashboard → Deployments
 2. Click the three dots on the latest deployment
 3. Select "Redeploy"
@@ -76,6 +79,7 @@ After setting all environment variables:
    - Look for `[AUTH ERROR]` or `[AUTH]` messages
 
 2. **Verify Environment Variables**:
+
    ```bash
    vercel env pull  # Download current env vars
    cat .env.local   # Check they're set correctly
@@ -93,12 +97,12 @@ After setting all environment variables:
 
 ### Common Problems and Solutions
 
-| Problem | Cause | Solution |
-|---------|-------|----------|
-| "Callback" error | Missing/wrong NEXTAUTH_URL | Set to exact deployment URL with https:// |
-| No session after login | AUTH_SECRET not set | Generate and set a secure secret |
-| Database timeout | Connection string issue | Add pooling parameters to DATABASE_URL |
-| OAuth redirect mismatch | Wrong URI in Google Console | Must match exactly including https:// |
+| Problem                 | Cause                       | Solution                                  |
+| ----------------------- | --------------------------- | ----------------------------------------- |
+| "Callback" error        | Missing/wrong NEXTAUTH_URL  | Set to exact deployment URL with https:// |
+| No session after login  | AUTH_SECRET not set         | Generate and set a secure secret          |
+| Database timeout        | Connection string issue     | Add pooling parameters to DATABASE_URL    |
+| OAuth redirect mismatch | Wrong URI in Google Console | Must match exactly including https://     |
 
 ## Local Development
 

@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 
 export function WeeklySummary({
   entriesCount,
@@ -28,4 +28,3 @@ export function WeeklySummary({
 }
 
 export default WeeklySummary;
-

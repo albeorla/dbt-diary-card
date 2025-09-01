@@ -1,6 +1,10 @@
 import { test, expect } from '@playwright/test';
 
-async function signInAsAdmin(page: any, request: any, email = `e2e-admin-${Date.now()}@example.com`) {
+async function signInAsAdmin(
+  page: any,
+  request: any,
+  email = `e2e-admin-${Date.now()}@example.com`,
+) {
   const res = await request.post('/api/test-auth/signin', {
     data: { email, role: 'ADMIN' },
     headers: { 'x-test-auth': process.env.TEST_AUTH_SECRET || 'dev' },
@@ -31,7 +35,10 @@ test('magic link invite creates user, logs them in, redirects', async ({ page, r
   await page.getByRole('button', { name: 'Assign' }).click();
   await expect(page.getByText('Invite created. Magic link:')).toBeVisible();
 
-  const link = await page.locator('a', { hasText: '/api/invite/accept/' }).first().getAttribute('href');
+  const link = await page
+    .locator('a', { hasText: '/api/invite/accept/' })
+    .first()
+    .getAttribute('href');
   expect(link).toBeTruthy();
 
   // Click magic link to auto-accept and auto-login; app redirects internally

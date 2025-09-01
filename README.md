@@ -1,3 +1,20 @@
+# DBT Diary Card
+
+Status
+
+- CI (E2E): ![E2E Tests](https://img.shields.io/badge/ci-e2e-green)
+- Coverage: ![Coverage](https://img.shields.io/badge/coverage-planned-lightgrey)
+
+Note: Replace the static badges with your repo workflow badge when ready:
+`https://github.com/YOUR_ORG/YOUR_REPO/actions/workflows/e2e.yml/badge.svg`
+
+## CI/CD
+
+- E2E workflow: `.github/workflows/e2e.yml` runs Playwright against a local Postgres service.
+- Deploy workflow: `.github/workflows/deploy.yml` deploys Vercel Preview on PRs and Production on main (requires Vercel secrets).
+
+---
+
 # Create T3 App
 
 This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.

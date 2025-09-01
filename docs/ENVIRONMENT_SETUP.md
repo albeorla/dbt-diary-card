@@ -5,21 +5,25 @@
 ### 1. Critical Authentication Variables
 
 #### NEXTAUTH_URL
+
 - **Required**: Yes
 - **Value**: `https://dbt-diarycard.vercel.app`
 - **Description**: Must match your deployment URL exactly. This is critical for cookie security and OAuth callbacks.
 
 #### AUTH_SECRET
+
 - **Required**: Yes (in production)
 - **How to generate**: Run `openssl rand -base64 32`
 - **Description**: Used to encrypt session cookies. Must be the same across all deployments.
 
 #### AUTH_GOOGLE_ID
+
 - **Required**: Yes
 - **Value**: Your Google OAuth Client ID (currently: `***REMOVED***`)
 - **Get from**: [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
 
 #### AUTH_GOOGLE_SECRET
+
 - **Required**: Yes
 - **Value**: Your Google OAuth Client Secret
 - **Get from**: [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
@@ -27,9 +31,10 @@
 ### 2. Database Configuration
 
 #### DATABASE_URL
+
 - **Required**: Yes
 - **Format**: `postgresql://user:password@host:5432/database?schema=public`
-- **Important for Vercel**: 
+- **Important for Vercel**:
   - Use a cloud-hosted PostgreSQL (e.g., Neon, Supabase, Railway, Vercel Postgres)
   - Add connection pooling parameters: `?pgbouncer=true&connect_timeout=15`
   - Ensure the database is accessible from Vercel's IP ranges
@@ -72,9 +77,9 @@ After setting up environment variables:
 
 ### Common Issues and Solutions
 
-| Issue | Solution |
-|-------|----------|
+| Issue                        | Solution                                             |
+| ---------------------------- | ---------------------------------------------------- |
 | "Callback" error after OAuth | Check NEXTAUTH_URL and AUTH_SECRET are set correctly |
-| 401 on API calls after login | Verify database connection and session creation |
-| OAuth redirect mismatch | Ensure Google Console redirect URI matches exactly |
-| Session not persisting | Check AUTH_SECRET is consistent across deployments |
+| 401 on API calls after login | Verify database connection and session creation      |
+| OAuth redirect mismatch      | Ensure Google Console redirect URI matches exactly   |
+| Session not persisting       | Check AUTH_SECRET is consistent across deployments   |

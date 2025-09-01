@@ -15,7 +15,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 console.log('🚀 DBT Diary Card - Vercel Environment Setup\n');
-console.log('=' .repeat(50));
+console.log('='.repeat(50));
 
 // Generate secure AUTH_SECRET
 const authSecret = crypto.randomBytes(32).toString('base64');
@@ -25,28 +25,29 @@ const envConfig = {
   // Critical Authentication Variables
   NEXTAUTH_URL: 'https://dbt-diarycard.vercel.app',
   AUTH_SECRET: authSecret,
-  
+
   // Google OAuth (user needs to provide these)
   AUTH_GOOGLE_ID: '***REMOVED***',
   AUTH_GOOGLE_SECRET: '<YOUR_GOOGLE_CLIENT_SECRET>',
-  
+
   // Database with proper pooling for Vercel
-  DATABASE_URL: 'postgresql://<user>:<password>@<host>:5432/<database>?pgbouncer=true&connect_timeout=15&pool_timeout=0',
-  
+  DATABASE_URL:
+    'postgresql://<user>:<password>@<host>:5432/<database>?pgbouncer=true&connect_timeout=15&pool_timeout=0',
+
   // Email configuration (optional)
   SMTP_HOST: 'smtp.gmail.com',
   SMTP_PORT: '465',
   SMTP_USER: '<your-email@gmail.com>',
   SMTP_PASS: '<your-app-specific-password>',
   EMAIL_FROM: 'noreply@dbt-diarycard.vercel.app',
-  
+
   // Stripe (optional)
   STRIPE_SECRET_KEY: '***REMOVED***',
   STRIPE_WEBHOOK_SECRET: 'whsec_placeholder',
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: 'pk_test_placeholder',
-  
+
   // Node environment
-  NODE_ENV: 'production'
+  NODE_ENV: 'production',
 };
 
 // Generate .env.production file
@@ -70,7 +71,7 @@ Object.entries(envConfig).forEach(([key, value]) => {
   }
 });
 
-console.log('\n' + '=' .repeat(50));
+console.log('\n' + '='.repeat(50));
 console.log('\n📋 Next Steps:\n');
 
 console.log('1. Update these values in the generated .env.production file:');
@@ -110,15 +111,15 @@ try {
 }
 
 // Generate Vercel CLI command
-console.log('=' .repeat(50));
+console.log('='.repeat(50));
 console.log('\n🎯 Quick Vercel CLI Setup Commands:\n');
 console.log('# Set all environment variables at once:');
 
 const vercelCommands = Object.entries(envConfig)
   .filter(([key]) => !key.includes('<'))
   .map(([key, value]) => {
-    const displayValue = key === 'AUTH_SECRET' ? value : 
-                        key.includes('SECRET') ? '<YOUR_VALUE>' : value;
+    const displayValue =
+      key === 'AUTH_SECRET' ? value : key.includes('SECRET') ? '<YOUR_VALUE>' : value;
     return `vercel env add ${key} production`;
   });
 
@@ -127,8 +128,10 @@ console.log(vercelCommands.join('\n'));
 console.log('\n# Then deploy:');
 console.log('vercel --prod\n');
 
-console.log('=' .repeat(50));
+console.log('='.repeat(50));
 console.log('\n📚 Documentation:');
 console.log('   - NextAuth.js: https://next-auth.js.org/');
 console.log('   - Vercel Env: https://vercel.com/docs/environment-variables');
-console.log('   - Prisma + Vercel: https://www.prisma.io/docs/guides/deployment/deployment-guides/deploying-to-vercel\n');
+console.log(
+  '   - Prisma + Vercel: https://www.prisma.io/docs/guides/deployment/deployment-guides/deploying-to-vercel\n',
+);

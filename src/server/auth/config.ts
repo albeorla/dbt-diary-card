@@ -1,9 +1,9 @@
-import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import { type DefaultSession, type NextAuthOptions } from "next-auth";
-import GoogleProvider from "next-auth/providers/google";
-import { env } from "~/env";
+import { PrismaAdapter } from '@next-auth/prisma-adapter';
+import { type DefaultSession, type NextAuthOptions } from 'next-auth';
+import GoogleProvider from 'next-auth/providers/google';
+import { env } from '~/env';
 
-import { db } from "~/server/db";
+import { db } from '~/server/db';
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -11,13 +11,13 @@ import { db } from "~/server/db";
  *
  * @see https://next-auth.js.org/getting-started/typescript#module-augmentation
  */
-declare module "next-auth" {
+declare module 'next-auth' {
   interface Session extends DefaultSession {
     user: {
       id: string;
       // ...other properties
       // role: UserRole;
-    } & DefaultSession["user"];
+    } & DefaultSession['user'];
   }
 
   // interface User {
@@ -32,11 +32,11 @@ declare module "next-auth" {
  * @see https://next-auth.js.org/configuration/options
  */
 // Determine if we're in production based on NEXTAUTH_URL
-const isProduction = env.NEXTAUTH_URL?.startsWith("https://") ?? false;
+const isProduction = env.NEXTAUTH_URL?.startsWith('https://') ?? false;
 
 export const authOptions: NextAuthOptions = {
-  session: { 
-    strategy: "database",
+  session: {
+    strategy: 'database',
     // Ensure session max age is reasonable for database sessions
     maxAge: 30 * 24 * 60 * 60, // 30 days
     updateAge: 24 * 60 * 60, // 24 hours
@@ -44,30 +44,30 @@ export const authOptions: NextAuthOptions = {
   // Explicit cookie configuration for Vercel deployment
   cookies: {
     sessionToken: {
-      name: `${isProduction ? "__Secure-" : ""}next-auth.session-token`,
+      name: `${isProduction ? '__Secure-' : ''}next-auth.session-token`,
       options: {
         httpOnly: true,
-        sameSite: "lax",
-        path: "/",
+        sameSite: 'lax',
+        path: '/',
         secure: isProduction,
         // Ensure domain matches NEXTAUTH_URL
-        domain: isProduction ? ".vercel.app" : undefined,
+        domain: isProduction ? '.vercel.app' : undefined,
       },
     },
     callbackUrl: {
-      name: `${isProduction ? "__Secure-" : ""}next-auth.callback-url`,
+      name: `${isProduction ? '__Secure-' : ''}next-auth.callback-url`,
       options: {
-        sameSite: "lax",
-        path: "/",
+        sameSite: 'lax',
+        path: '/',
         secure: isProduction,
       },
     },
     csrfToken: {
-      name: `${isProduction ? "__Host-" : ""}next-auth.csrf-token`,
+      name: `${isProduction ? '__Host-' : ''}next-auth.csrf-token`,
       options: {
         httpOnly: true,
-        sameSite: "lax",
-        path: "/",
+        sameSite: 'lax',
+        path: '/',
         secure: isProduction,
       },
     },
@@ -81,10 +81,10 @@ export const authOptions: NextAuthOptions = {
       // Explicitly request profile and email
       authorization: {
         params: {
-          prompt: "consent",
-          access_type: "offline",
-          response_type: "code"
-        }
+          prompt: 'consent',
+          access_type: 'offline',
+          response_type: 'code',
+        },
       },
     }),
     /**
@@ -101,14 +101,14 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     session: async ({ session, user }) => {
       // Log session creation for debugging
-      if (env.NODE_ENV !== "production") {
-        console.log("[AUTH] Session callback:", { 
-          userId: user?.id, 
+      if (env.NODE_ENV !== 'production') {
+        console.log('[AUTH] Session callback:', {
+          userId: user?.id,
           email: user?.email,
-          sessionUser: session?.user?.email 
+          sessionUser: session?.user?.email,
         });
       }
-      
+
       return {
         ...session,
         user: {
@@ -119,61 +119,61 @@ export const authOptions: NextAuthOptions = {
     },
     signIn: async ({ user, account, profile }) => {
       // Log sign-in attempts for debugging
-      if (env.NODE_ENV !== "production") {
-        console.log("[AUTH] Sign-in attempt:", { 
-          userId: user?.id, 
+      if (env.NODE_ENV !== 'production') {
+        console.log('[AUTH] Sign-in attempt:', {
+          userId: user?.id,
           email: user?.email,
           provider: account?.provider,
-          accountId: account?.providerAccountId
+          accountId: account?.providerAccountId,
         });
       }
-      
+
       // Verify we have required data
       if (!user?.email) {
-        console.error("[AUTH] Sign-in failed: No email provided");
+        console.error('[AUTH] Sign-in failed: No email provided');
         return false;
       }
-      
+
       return true;
     },
     redirect: async ({ url, baseUrl }) => {
       // Ensure redirects stay within the app
-      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      if (url.startsWith('/')) return `${baseUrl}${url}`;
       else if (new URL(url).origin === baseUrl) return url;
       return baseUrl;
     },
   },
   pages: {
-    signIn: "/signin",
-    error: "/signin", // Redirect errors to signin page
+    signIn: '/signin',
+    error: '/signin', // Redirect errors to signin page
   },
   events: {
     signIn: async ({ user, account, profile, isNewUser }) => {
-      console.log("[AUTH] Sign-in event:", {
+      console.log('[AUTH] Sign-in event:', {
         userId: user?.id,
         email: user?.email,
         isNewUser,
         provider: account?.provider,
       });
-      
+
       try {
         const org = await db.organization.findFirst({ select: { id: true } });
         if (!org) {
-          console.log("[AUTH] No organization exists yet");
+          console.log('[AUTH] No organization exists yet');
           return;
         }
         if (!user?.id) {
-          console.error("[AUTH] No user ID in sign-in event");
+          console.error('[AUTH] No user ID in sign-in event');
           return;
         }
-        
+
         const membership = await db.orgMembership.upsert({
           where: { orgId_userId: { orgId: org.id, userId: user.id } },
           update: {},
-          create: { orgId: org.id, userId: user.id, role: "USER" },
+          create: { orgId: org.id, userId: user.id, role: 'USER' },
         });
-        
-        console.log("[AUTH] Org membership ensured:", {
+
+        console.log('[AUTH] Org membership ensured:', {
           userId: user.id,
           orgId: org.id,
           membershipId: membership.id,
@@ -181,25 +181,25 @@ export const authOptions: NextAuthOptions = {
         });
       } catch (error) {
         // Log but don't fail sign-in for org membership errors
-        console.error("[AUTH] Error creating org membership:", error);
+        console.error('[AUTH] Error creating org membership:', error);
       }
     },
     createUser: async ({ user }) => {
-      console.log("[AUTH] New user created:", {
+      console.log('[AUTH] New user created:', {
         userId: user?.id,
         email: user?.email,
       });
     },
     linkAccount: async ({ user, account, profile }) => {
-      console.log("[AUTH] Account linked:", {
+      console.log('[AUTH] Account linked:', {
         userId: user?.id,
         provider: account?.provider,
         accountId: account?.providerAccountId,
       });
     },
     session: async ({ session, token }) => {
-      if (env.NODE_ENV !== "production") {
-        console.log("[AUTH] Session event:", {
+      if (env.NODE_ENV !== 'production') {
+        console.log('[AUTH] Session event:', {
           hasSession: !!session,
           userId: session?.user?.id,
           expires: session?.expires,
@@ -208,17 +208,17 @@ export const authOptions: NextAuthOptions = {
     },
   },
   secret: env.AUTH_SECRET,
-  debug: env.NODE_ENV !== "production", // Only debug in development
+  debug: env.NODE_ENV !== 'production', // Only debug in development
   logger: {
     error: (code, metadata) => {
-      console.error("[AUTH ERROR]", code, metadata);
+      console.error('[AUTH ERROR]', code, metadata);
     },
     warn: (code) => {
-      console.warn("[AUTH WARN]", code);
+      console.warn('[AUTH WARN]', code);
     },
     debug: (code, metadata) => {
-      if (env.NODE_ENV !== "production") {
-        console.log("[AUTH DEBUG]", code, metadata);
+      if (env.NODE_ENV !== 'production') {
+        console.log('[AUTH DEBUG]', code, metadata);
       }
     },
   },

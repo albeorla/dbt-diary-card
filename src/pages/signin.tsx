@@ -1,6 +1,6 @@
-import Head from "next/head";
-import { getProviders, signIn } from "next-auth/react";
-import { useEffect, useState } from "react";
+import Head from 'next/head';
+import { getProviders, signIn } from 'next-auth/react';
+import { useEffect, useState } from 'react';
 
 export default function SignInPage() {
   const [providers, setProviders] = useState<Record<string, any> | null>(null);
@@ -21,7 +21,7 @@ export default function SignInPage() {
             {Object.values(providers).map((provider) => (
               <button
                 key={provider.id}
-                onClick={() => void signIn(provider.id, { callbackUrl: "/" })}
+                onClick={() => void signIn(provider.id, { callbackUrl: '/' })}
                 className="rounded bg-gray-800 px-4 py-2 text-white hover:bg-black"
               >
                 Continue with {provider.name}
@@ -33,5 +33,3 @@ export default function SignInPage() {
     </>
   );
 }
-
-

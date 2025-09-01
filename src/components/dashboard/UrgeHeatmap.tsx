@@ -1,14 +1,21 @@
-import React, { useMemo } from "react";
+import React, { useMemo } from 'react';
 
-type Urge = "SELF_HARM" | "SUBSTANCE_USE" | "BINGE_EATING" | "RESTRICTING" | "ISOLATING" | "LASHING_OUT" | "RUMINATING";
+type Urge =
+  | 'SELF_HARM'
+  | 'SUBSTANCE_USE'
+  | 'BINGE_EATING'
+  | 'RESTRICTING'
+  | 'ISOLATING'
+  | 'LASHING_OUT'
+  | 'RUMINATING';
 const URGE_LABELS: Record<Urge, string> = {
-  SELF_HARM: "Self-harm",
-  SUBSTANCE_USE: "Substance use",
-  BINGE_EATING: "Binge eating",
-  RESTRICTING: "Restricting",
-  ISOLATING: "Isolating",
-  LASHING_OUT: "Lashing out",
-  RUMINATING: "Ruminating",
+  SELF_HARM: 'Self-harm',
+  SUBSTANCE_USE: 'Substance use',
+  BINGE_EATING: 'Binge eating',
+  RESTRICTING: 'Restricting',
+  ISOLATING: 'Isolating',
+  LASHING_OUT: 'Lashing out',
+  RUMINATING: 'Ruminating',
 };
 
 function toYMD(d: Date) {
@@ -35,7 +42,7 @@ export function UrgeHeatmap({
   const matrix = useMemo(() => {
     const m = new Map<string, number>();
     items.forEach((u: any) => {
-      const rawDate = u?.entry?.entryDate ?? (u?.entryDate ?? null);
+      const rawDate = u?.entry?.entryDate ?? u?.entryDate ?? null;
       if (!rawDate) return; // skip if date missing
       const key = `${u.urgeType}:${toYMD(new Date(rawDate))}`;
       const prev = m.get(key) ?? 0;
@@ -44,7 +51,15 @@ export function UrgeHeatmap({
     return m;
   }, [items]);
 
-  const urges: Urge[] = ["SELF_HARM", "SUBSTANCE_USE", "BINGE_EATING", "RESTRICTING", "ISOLATING", "LASHING_OUT", "RUMINATING"];
+  const urges: Urge[] = [
+    'SELF_HARM',
+    'SUBSTANCE_USE',
+    'BINGE_EATING',
+    'RESTRICTING',
+    'ISOLATING',
+    'LASHING_OUT',
+    'RUMINATING',
+  ];
 
   const color = (val: number) => {
     const t = Math.min(1, Math.max(0, val / 5));
@@ -60,7 +75,9 @@ export function UrgeHeatmap({
           <tr>
             <th className="border-b p-2 text-left">Urge</th>
             {days.map((d) => (
-              <th key={d} className="border-b p-2 text-center">{d.slice(5)}</th>
+              <th key={d} className="border-b p-2 text-center">
+                {d.slice(5)}
+              </th>
             ))}
           </tr>
         </thead>
@@ -74,7 +91,7 @@ export function UrgeHeatmap({
                   <td key={d} className="border-b p-1">
                     <div
                       className="h-6 w-6 rounded"
-                      style={{ background: val > 0 ? color(val) : "#f3f4f6" }}
+                      style={{ background: val > 0 ? color(val) : '#f3f4f6' }}
                       title={`${URGE_LABELS[u]} on ${d}: ${val}`}
                     />
                   </td>

@@ -1,8 +1,8 @@
-import Head from "next/head";
-import { useEffect, useMemo, useState } from "react";
-import { useSession, signIn } from "next-auth/react";
-import CalendarView from "~/components/calendar/CalendarView";
-import { api } from "~/utils/api";
+import Head from 'next/head';
+import { useEffect, useMemo, useState } from 'react';
+import { useSession, signIn } from 'next-auth/react';
+import CalendarView from '~/components/calendar/CalendarView';
+import { api } from '~/utils/api';
 
 export default function CalendarPage() {
   const { status } = useSession();
@@ -34,12 +34,15 @@ export default function CalendarPage() {
     });
   };
 
-  if (status === "unauthenticated") {
+  if (status === 'unauthenticated') {
     return (
       <main className="flex min-h-screen items-center justify-center">
         <div className="text-center">
           <p className="mb-4">You must sign in to view the calendar.</p>
-          <button className="rounded bg-indigo-600 px-4 py-2 text-white" onClick={() => void signIn()}>
+          <button
+            className="rounded bg-indigo-600 px-4 py-2 text-white"
+            onClick={() => void signIn()}
+          >
             Sign in
           </button>
         </div>
@@ -54,21 +57,36 @@ export default function CalendarPage() {
       </Head>
       <main className="mx-auto max-w-5xl p-6">
         <div className="mb-4 flex items-center justify-between">
-          <button className="rounded border px-3 py-2 hover:bg-gray-50" onClick={prevMonth} aria-label="Previous month">
+          <button
+            className="rounded border px-3 py-2 hover:bg-gray-50"
+            onClick={prevMonth}
+            aria-label="Previous month"
+          >
             ←
           </button>
           <h1 className="text-2xl font-semibold">
-            {new Date(yearMonth.year, yearMonth.month - 1, 1).toLocaleString(undefined, { month: "long", year: "numeric" })}
+            {new Date(yearMonth.year, yearMonth.month - 1, 1).toLocaleString(undefined, {
+              month: 'long',
+              year: 'numeric',
+            })}
           </h1>
           <div className="flex items-center gap-2">
-            <button className="rounded border px-3 py-2 hover:bg-gray-50" onClick={() => {
-              const d = new Date();
-              setYearMonth({ year: d.getFullYear(), month: d.getMonth() + 1 });
-              // hint: keyboard shortcuts available in grid
-            }} aria-label="Jump to current month">
+            <button
+              className="rounded border px-3 py-2 hover:bg-gray-50"
+              onClick={() => {
+                const d = new Date();
+                setYearMonth({ year: d.getFullYear(), month: d.getMonth() + 1 });
+                // hint: keyboard shortcuts available in grid
+              }}
+              aria-label="Jump to current month"
+            >
               Today
             </button>
-            <button className="rounded border px-3 py-2 hover:bg-gray-50" onClick={nextMonth} aria-label="Next month">
+            <button
+              className="rounded border px-3 py-2 hover:bg-gray-50"
+              onClick={nextMonth}
+              aria-label="Next month"
+            >
               →
             </button>
           </div>

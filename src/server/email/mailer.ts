@@ -1,5 +1,5 @@
-import nodemailer from "nodemailer";
-import { env } from "~/env";
+import nodemailer from 'nodemailer';
+import { env } from '~/env';
 
 export const transporter = nodemailer.createTransport({
   host: env.SMTP_HOST,
@@ -20,9 +20,7 @@ export async function sendInviteEmail(to: string, link: string) {
   await transporter.sendMail({
     from: env.EMAIL_FROM,
     to,
-    subject: "DBT Diary Card Invitation",
+    subject: 'DBT Diary Card Invitation',
     html,
   });
 }
-
-

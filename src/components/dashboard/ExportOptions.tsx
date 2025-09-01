@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from "react";
-import { api } from "~/utils/api";
+import React, { useMemo, useState } from 'react';
+import { api } from '~/utils/api';
 
 function toYMD(d: Date) {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate()).toISOString().slice(0, 10);
@@ -19,12 +19,15 @@ export function ExportOptions() {
   const exportCSV = () => {
     const rows = (entries.data ?? []).map((e: any) => ({
       date: toYMD(new Date(e.entryDate)),
-      notes: e.notes ?? "",
+      notes: e.notes ?? '',
     }));
-    const csv = ["date,notes", ...rows.map((r) => `${r.date},"${(r.notes as string).replace(/"/g, '""')}"`)].join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const csv = [
+      'date,notes',
+      ...rows.map((r) => `${r.date},"${(r.notes as string).replace(/"/g, '""')}"`),
+    ].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
+    const a = document.createElement('a');
     a.href = url;
     a.download = `diary_${range.start}_to_${range.end}.csv`;
     a.click();
@@ -39,17 +42,42 @@ export function ExportOptions() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-end gap-2">
         <div className="flex items-center gap-2">
-          <label className="text-sm" htmlFor="start">Start</label>
-          <input id="start" type="date" className="rounded border p-2" value={range.start} onChange={(e) => setRange((r) => ({ ...r, start: e.target.value }))} />
+          <label className="text-sm" htmlFor="start">
+            Start
+          </label>
+          <input
+            id="start"
+            type="date"
+            className="rounded border p-2"
+            value={range.start}
+            onChange={(e) => setRange((r) => ({ ...r, start: e.target.value }))}
+          />
         </div>
         <div className="flex items-center gap-2">
-          <label className="text-sm" htmlFor="end">End</label>
-          <input id="end" type="date" className="rounded border p-2" value={range.end} onChange={(e) => setRange((r) => ({ ...r, end: e.target.value }))} />
+          <label className="text-sm" htmlFor="end">
+            End
+          </label>
+          <input
+            id="end"
+            type="date"
+            className="rounded border p-2"
+            value={range.end}
+            onChange={(e) => setRange((r) => ({ ...r, end: e.target.value }))}
+          />
         </div>
-        <button className="ml-2 rounded border px-3 py-2 text-sm hover:bg-gray-50" onClick={exportCSV} disabled={entries.isLoading} title="Export current range to CSV">
+        <button
+          className="ml-2 rounded border px-3 py-2 text-sm hover:bg-gray-50"
+          onClick={exportCSV}
+          disabled={entries.isLoading}
+          title="Export current range to CSV"
+        >
           Export CSV
         </button>
-        <button className="rounded border px-3 py-2 text-sm hover:bg-gray-50" onClick={printPDF} title="Use your browser Print to PDF">
+        <button
+          className="rounded border px-3 py-2 text-sm hover:bg-gray-50"
+          onClick={printPDF}
+          title="Use your browser Print to PDF"
+        >
           Print to PDF
         </button>
       </div>
@@ -67,8 +95,12 @@ export function ExportOptions() {
               <>
                 {Array.from({ length: 6 }).map((_, i) => (
                   <tr key={i}>
-                    <td className="border-b p-3"><span className="inline-block h-4 w-24 animate-pulse rounded bg-gray-200" /></td>
-                    <td className="border-b p-3"><span className="inline-block h-4 w-64 animate-pulse rounded bg-gray-200" /></td>
+                    <td className="border-b p-3">
+                      <span className="inline-block h-4 w-24 animate-pulse rounded bg-gray-200" />
+                    </td>
+                    <td className="border-b p-3">
+                      <span className="inline-block h-4 w-64 animate-pulse rounded bg-gray-200" />
+                    </td>
                   </tr>
                 ))}
               </>
@@ -76,14 +108,16 @@ export function ExportOptions() {
             {(entries.data ?? []).map((e: any) => (
               <tr key={e.id} className="hover:bg-gray-50">
                 <td className="border-b p-3 align-top">{toYMD(new Date(e.entryDate))}</td>
-                <td className="border-b p-3 align-top max-w-[480px] truncate" title={e.notes ?? ""}>
-                  {e.notes ?? ""}
+                <td className="border-b p-3 align-top max-w-[480px] truncate" title={e.notes ?? ''}>
+                  {e.notes ?? ''}
                 </td>
               </tr>
             ))}
             {entries.data?.length === 0 && (
               <tr>
-                <td className="p-4 text-center text-gray-500" colSpan={2}>No entries in range</td>
+                <td className="p-4 text-center text-gray-500" colSpan={2}>
+                  No entries in range
+                </td>
               </tr>
             )}
           </tbody>
@@ -94,4 +128,3 @@ export function ExportOptions() {
 }
 
 export default ExportOptions;
-

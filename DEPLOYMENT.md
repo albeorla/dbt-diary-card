@@ -1,6 +1,7 @@
 # Deployment Guide
 
 ## Production URL
+
 https://dbt-diary-card-test.vercel.app
 
 ## Database Migrations
@@ -10,6 +11,7 @@ Since the production database (AWS RDS) is not accessible from GitHub Actions du
 ### Running Production Migrations
 
 1. **Using the migration script:**
+
    ```bash
    ./scripts/migrate-prod.sh
    ```
@@ -33,6 +35,7 @@ Since the production database (AWS RDS) is not accessible from GitHub Actions du
 ## Environment Variables
 
 The following environment variables are configured in Vercel:
+
 - `AUTH_GOOGLE_ID` - Google OAuth client ID
 - `AUTH_GOOGLE_SECRET` - Google OAuth client secret
 - `AUTH_SECRET` - NextAuth secret
@@ -49,13 +52,17 @@ The following environment variables are configured in Vercel:
 ## Troubleshooting
 
 ### Build Failures
+
 If builds fail on Vercel:
+
 1. Check the build logs at https://vercel.com/albertjorlandos-projects/dbt-diary-card-test
 2. Ensure all environment variables are set
 3. Run `npm run build` locally to verify the build works
 
 ### Database Connection Issues
+
 If you can't connect to the database:
+
 1. Ensure you're using the correct connection string
 2. Check that your IP is whitelisted in AWS RDS security groups
 3. Verify the database is running and accessible

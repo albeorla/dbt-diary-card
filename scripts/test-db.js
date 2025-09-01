@@ -19,18 +19,18 @@ const prisma = new PrismaClient();
 
 async function testConnection() {
   console.log('🔍 Testing database connection...\n');
-  
+
   try {
     // Test basic connection
     console.log('1. Testing connection...');
     await prisma.$connect();
     console.log('✅ Connected to database!\n');
-    
+
     // Test query
     console.log('2. Testing query...');
     const result = await prisma.$queryRaw`SELECT 1 as test`;
     console.log('✅ Query successful!\n');
-    
+
     // Check if tables exist
     console.log('3. Checking tables...');
     const tables = await prisma.$queryRaw`
@@ -39,15 +39,15 @@ async function testConnection() {
       WHERE table_schema = 'public'
       ORDER BY table_name
     `;
-    
+
     if (tables.length === 0) {
       console.log('⚠️  No tables found. Run: npx prisma db push\n');
     } else {
       console.log(`✅ Found ${tables.length} tables:`);
-      tables.forEach(t => console.log(`   - ${t.table_name}`));
+      tables.forEach((t) => console.log(`   - ${t.table_name}`));
       console.log();
     }
-    
+
     // Check for users
     try {
       const userCount = await prisma.user.count();
@@ -55,10 +55,9 @@ async function testConnection() {
     } catch (e) {
       console.log('4. User table not found (run prisma db push)');
     }
-    
+
     console.log('\n✅ Database connection successful!');
     console.log('\nConnection string format verified.');
-    
   } catch (error) {
     console.error('❌ Connection failed:', error.message);
     console.error('\nTroubleshooting:');

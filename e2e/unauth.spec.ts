@@ -20,4 +20,3 @@ for (const p of pages) {
     }
   });
 }
-

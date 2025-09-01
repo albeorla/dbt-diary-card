@@ -11,7 +11,10 @@ export function createAppTheme(mode: PaletteMode = 'light') {
       primary: { main: indigo[600] },
       secondary: { main: teal[600] },
       error: { main: red[600] },
-      background: { default: isDark ? '#0f1115' : '#ffffff', paper: isDark ? '#12161c' : '#ffffff' },
+      background: {
+        default: isDark ? '#0f1115' : '#ffffff',
+        paper: isDark ? '#12161c' : '#ffffff',
+      },
       divider: isDark ? 'rgba(255,255,255,0.12)' : grey[200],
     },
     shape: { borderRadius: 10 },
