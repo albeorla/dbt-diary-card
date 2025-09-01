@@ -82,6 +82,8 @@ jobs:
       - name: Generate Prisma Client
         run: npx prisma generate
       - name: Prepare Database (push schema + seed)
+        env:
+          DATABASE_URL_DIRECT: ${{ env.DATABASE_URL }}
         run: |
           echo "Using DB: $DATABASE_URL"
           npx prisma db push
