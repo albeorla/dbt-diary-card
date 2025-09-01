@@ -10,7 +10,9 @@
       "Bash(npm run format:write:*)",
       "Bash(npm run format:*)",
       "Bash(gh run watch:*)",
-      "Bash(gh pr comment:*)"
+      "Bash(gh pr comment:*)",
+      "Bash(gh pr checks:*)",
+      "Bash(gh workflow run:*)"
     ],
     "deny": [],
     "ask": []
