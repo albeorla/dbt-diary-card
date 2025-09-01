@@ -33,11 +33,16 @@ jobs:
         run: npm run build
         env:
           AUTH_SECRET: testsecret
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+          NODE_ENV: development
+      - name: List build output
+        run: ls -la
       - name: Upload Next build artifact
         uses: actions/upload-artifact@v4
         with:
           name: next-build
           path: .next
+          if-no-files-found: error
 
   e2e:
     runs-on: ubuntu-latest
@@ -93,7 +98,10 @@ jobs:
           NEXTAUTH_URL: http://localhost:3000
           AUTH_SECRET: testsecret
           DATABASE_URL: ${{ env.DATABASE_URL }}
+          DATABASE_URL_DIRECT: ${{ env.DATABASE_URL }}
           TEST_AUTH_SECRET: dev
+          NODE_ENV: development
+          CI: true
         run: |
           npm run test:e2e -- --reporter=dot
 
