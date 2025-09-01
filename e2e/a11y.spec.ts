@@ -49,7 +49,7 @@ test.describe('Accessibility & Keyboard', () => {
     // Sliders are reachable via name
     await expect(page.getByRole('slider', { name: 'Joy' })).toBeVisible();
     await expect(page.getByRole('slider', { name: 'Anxiety' })).toBeVisible();
-    // Checkbox label present
-    await expect(page.getByRole('checkbox', { name: /acted on/i })).toBeVisible();
+    // Checkbox label present (scope to a single checkbox to avoid strict-mode violation)
+    await expect(page.getByRole('checkbox', { name: 'Acted on substance use urge' })).toBeVisible();
   });
 });
