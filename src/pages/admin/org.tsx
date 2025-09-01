@@ -10,6 +10,9 @@ export default function AdminOrgPage() {
   const setRole = api.org.setRole.useMutation({ onSuccess: () => members.refetch() });
   const assign = api.org.assignManager.useMutation({ onSuccess: () => members.refetch() });
   const assignByEmail = api.org.assignByEmail.useMutation();
+  const invites = api.org.listInvites.useQuery(undefined, { enabled: !!state.data?.org });
+  const resendInvite = api.org.resendInvite.useMutation({ onSuccess: () => invites.refetch() });
+  const revokeInvite = api.org.revokeInvite.useMutation({ onSuccess: () => invites.refetch() });
   const [email, setEmail] = useState('');
   const [emailRole, setEmailRole] = useState('USER');
   const managers = (members.data ?? []).filter((m: any) => m.role === 'MANAGER');
@@ -220,6 +223,70 @@ export default function AdminOrgPage() {
                 <div>Expires: {new Date(assignByEmail.data.expiresAt).toLocaleString()}</div>
               </div>
             )}
+          </div>
+        )}
+
+        {state.data?.org && (
+          <div className="mt-6 rounded border p-4">
+            <h2 className="mb-4 text-lg font-semibold">Pending Invites</h2>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead>
+                  <tr className="bg-gray-50 text-left">
+                    <th className="border-b p-3">Email</th>
+                    <th className="border-b p-3">Role</th>
+                    <th className="border-b p-3">Manager</th>
+                    <th className="border-b p-3">Expires</th>
+                    <th className="border-b p-3">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(invites.data ?? []).map((i: any) => (
+                    <tr key={i.id}>
+                      <td className="border-b p-3">
+                        <div className="truncate" title={i.email}>
+                          {i.email}
+                        </div>
+                        <a
+                          className="text-indigo-600 underline"
+                          href={`${inviteBase}/api/invite/accept/${i.token}`}
+                        >
+                          Magic link
+                        </a>
+                      </td>
+                      <td className="border-b p-3">{i.role}</td>
+                      <td className="border-b p-3">{i.managerName ?? '—'}</td>
+                      <td className="border-b p-3">{new Date(i.expiresAt).toLocaleString()}</td>
+                      <td className="border-b p-3">
+                        <div className="flex gap-2">
+                          <button
+                            className="rounded border px-2 py-1 hover:bg-gray-50"
+                            onClick={() => resendInvite.mutate({ inviteId: i.id })}
+                            disabled={resendInvite.isPending}
+                          >
+                            {resendInvite.isPending ? 'Resending…' : 'Resend'}
+                          </button>
+                          <button
+                            className="rounded border px-2 py-1 text-red-700 hover:bg-red-50"
+                            onClick={() => revokeInvite.mutate({ inviteId: i.id })}
+                            disabled={revokeInvite.isPending}
+                          >
+                            {revokeInvite.isPending ? 'Revoking…' : 'Revoke'}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {(invites.data ?? []).length === 0 && (
+                    <tr>
+                      <td className="p-4 text-center text-gray-500" colSpan={5}>
+                        No pending invites
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </main>

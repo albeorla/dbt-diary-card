@@ -11,7 +11,8 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
   webServer: {
-    command: 'npm run dev',
+    // In CI, run against built app; locally, run dev server
+    command: process.env.CI ? 'npm run start' : 'npm run dev',
     port: 3000,
     reuseExistingServer: true,
     timeout: 120_000,

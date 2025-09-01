@@ -3,6 +3,7 @@ import InfoIcon from '~/components/ui/InfoIcon';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import Slider from '@mui/material/Slider';
 
 export type Emotion =
   | 'SADNESS'
@@ -77,9 +78,10 @@ export function EmotionSliders({
               gap: 1,
             }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, width: 112 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, width: 140 }}>
               <label
                 className="text-sm font-medium"
+                id={`emotion-${k}-label`}
                 title={`Rate ${EMOTION_LABELS[k as Emotion].toLowerCase()} from 0 (none) to 10 (extreme).`}
               >
                 {EMOTION_LABELS[k as Emotion]}
@@ -88,15 +90,20 @@ export function EmotionSliders({
                 title={`Rate ${EMOTION_LABELS[k as Emotion].toLowerCase()} from 0 (none) to 10 (extreme).`}
               />
             </Box>
-            <input
-              type="range"
-              min={0}
-              max={10}
-              value={(emotions as any)[k]}
-              onChange={(e) => onChange(k as Emotion, Number(e.target.value))}
-              title={`Rate ${EMOTION_LABELS[k as Emotion].toLowerCase()} from 0 (none) to 10 (extreme). Current: ${(emotions as any)[k]}`}
-            />
-            <span className="w-6 text-right text-sm">{(emotions as any)[k]}</span>
+            <Box sx={{ flex: 1, px: 1 }}>
+              <Slider
+                aria-labelledby={`emotion-${k}-label`}
+                min={0}
+                max={10}
+                step={1}
+                value={(emotions as any)[k]}
+                onChange={(_, v) => onChange(k as Emotion, Number(v))}
+                valueLabelDisplay="auto"
+              />
+            </Box>
+            <span className="w-6 text-right text-sm" aria-live="polite">
+              {(emotions as any)[k]}
+            </span>
           </Paper>
         ))}
       </div>

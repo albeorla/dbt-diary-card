@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Local gate: typecheck, format check, lint
+npm run format:check && npm run typecheck && npm run lint
+

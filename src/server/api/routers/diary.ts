@@ -115,6 +115,24 @@ export const diaryRouter = createTRPCRouter({
       });
     }),
 
+  // Detailed export: includes top-level related records for printing
+  getRangeDetailed: protectedProcedure
+    .input(z.object({ startDate: z.string(), endDate: z.string() }))
+    .query(async ({ ctx, input }) => {
+      return ctx.db.diaryEntry.findMany({
+        where: {
+          userId: ctx.session.user.id,
+          entryDate: { gte: new Date(input.startDate), lte: new Date(input.endDate) },
+        },
+        orderBy: { entryDate: 'asc' },
+        include: {
+          emotionRatings: true,
+          urgesBehaviors: true,
+          skillsUsed: { include: { skill: true } },
+        },
+      });
+    }),
+
   getRecent: protectedProcedure
     .input(z.object({ limit: z.number().default(7) }))
     .query(async ({ ctx, input }) => {

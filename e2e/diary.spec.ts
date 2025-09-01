@@ -30,6 +30,16 @@ function todayYMD() {
   return `${y}-${m}-${day}`;
 }
 
+async function setSliderByAria(page: any, name: string, value: number) {
+  const slider = page.getByRole('slider', { name });
+  await slider.focus();
+  // Move to minimum
+  await slider.press('Home');
+  for (let i = 0; i < value; i++) {
+    await slider.press('ArrowRight');
+  }
+}
+
 test('diary: create today entry and verify in history and calendar', async ({ page, request }) => {
   await signIn(page, request);
 
@@ -39,12 +49,12 @@ test('diary: create today entry and verify in history and calendar', async ({ pa
   // Date input is disabled (locked to today)
   await expect(page.locator('input[type="date"]')).toBeDisabled();
 
-  // Set some emotions using titles
-  await page.locator('input[title*="joy"]').fill('7');
-  await page.locator('input[title*="anxiety"]').fill('4');
+  // Set some emotions using accessible slider labels
+  await setSliderByAria(page, 'Joy', 7);
+  await setSliderByAria(page, 'Anxiety', 4);
 
   // Set an urge intensity
-  await page.locator('input[title*="substance use"]').fill('2');
+  await setSliderByAria(page, 'Substance use intensity', 2);
 
   // Notes
   await page.locator('textarea[placeholder="Notes..."]').fill('Playwright diary entry');

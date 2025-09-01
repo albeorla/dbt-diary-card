@@ -35,7 +35,11 @@ export function ExportOptions() {
   };
 
   const printPDF = () => {
-    window.print();
+    // Open the print-friendly page with range query
+    const url = `/export/print?start=${encodeURIComponent(range.start)}&end=${encodeURIComponent(
+      range.end,
+    )}`;
+    window.open(url, '_blank');
   };
 
   return (

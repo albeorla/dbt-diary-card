@@ -9,10 +9,12 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+import { useTheme } from '@mui/material/styles';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 export function SkillsFrequency({ items }: { items: { name: string; count: number }[] }) {
+  const theme = useTheme();
   const data = useMemo(() => {
     const labels = items.map((s) => s.name);
     const counts = items.map((s) => s.count);
@@ -22,21 +24,41 @@ export function SkillsFrequency({ items }: { items: { name: string; count: numbe
         {
           label: 'Uses',
           data: counts,
-          backgroundColor: '#10b981',
+          backgroundColor: theme.palette.success.main,
         },
       ],
     };
-  }, [items]);
+  }, [items, theme.palette.success.main]);
   if (items.length === 0) return <div className="text-sm text-gray-500">No data</div>;
   return (
     <Bar
       data={data}
       options={{
-        plugins: { legend: { display: false } },
-        scales: { y: { beginAtZero: true } },
+        responsive: true,
         maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: theme.palette.background.paper,
+            titleColor: theme.palette.text.primary,
+            bodyColor: theme.palette.text.secondary,
+            borderColor: theme.palette.divider,
+            borderWidth: 1,
+          },
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { color: theme.palette.text.secondary },
+            grid: { color: theme.palette.divider },
+          },
+          x: {
+            ticks: { color: theme.palette.text.secondary },
+            grid: { display: false },
+          },
+        },
       }}
-      height={200}
+      height={220}
     />
   );
 }

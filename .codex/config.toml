@@ -1,0 +1,17 @@
+## Project-local Codex CLI config
+
+# Make MCP servers available when running Codex with this project config.
+# To use this file, run Codex with CODEX_HOME pointing here, e.g.:
+CODEX_HOME="${PWD}/.codex" codex
+
+[mcp_servers.context7]
+command = "npx"
+args = ["-y", "@upstash/context7-mcp@latest"]
+
+[mcp_servers.playwright]
+command = "npx"
+args = ["-y", "@playwright/mcp@latest"]
+
+[mcp_servers.sequential-thinking]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-sequential-thinking"]

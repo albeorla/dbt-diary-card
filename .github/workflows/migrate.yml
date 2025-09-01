@@ -1,10 +1,8 @@
-name: Deploy Pipeline
+name: Database Migration
 
 on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:  # Allow manual trigger
+  workflow_call:
+  workflow_dispatch:  # Allow manual/manual trigger
 
 jobs:
   check-database:

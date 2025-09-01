@@ -165,6 +165,58 @@ export const orgRouter = createTRPCRouter({
       return { status: 'invited' as const, token: invite.token, expiresAt: invite.expiresAt };
     }),
 
+  listInvites: protectedProcedure.query(async ({ ctx }) => {
+    if (!ctx.orgId) return [];
+    if (ctx.role !== 'ADMIN') throw new TRPCError({ code: 'FORBIDDEN' });
+    const invites = await ctx.db.orgInvite.findMany({
+      where: { orgId: ctx.orgId, consumedAt: null },
+      include: { manager: { include: { user: true } } },
+      orderBy: { expiresAt: 'asc' },
+    });
+    return invites.map((i) => ({
+      id: i.id,
+      email: i.email,
+      role: i.role,
+      managerName: i.manager?.user?.name ?? null,
+      token: i.token,
+      expiresAt: i.expiresAt,
+      consumedAt: i.consumedAt,
+    }));
+  }),
+
+  resendInvite: protectedProcedure
+    .input(z.object({ inviteId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.orgId) throw new TRPCError({ code: 'FORBIDDEN' });
+      if (ctx.role !== 'ADMIN') throw new TRPCError({ code: 'FORBIDDEN' });
+      const invite = await ctx.db.orgInvite.findUnique({ where: { id: input.inviteId } });
+      if (!invite) throw new TRPCError({ code: 'NOT_FOUND' });
+      if (invite.consumedAt) throw new TRPCError({ code: 'CONFLICT', message: 'Already consumed' });
+      const token = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+      const updated = await ctx.db.orgInvite.update({
+        where: { id: invite.id },
+        data: { token, expiresAt },
+      });
+      const base = env.NEXTAUTH_URL ?? 'http://localhost:3000';
+      const link = `${base}/api/invite/accept/${updated.token}`;
+      try {
+        await sendInviteEmail(updated.email, link);
+      } catch (e) {
+        console.error('Failed to resend invite email', e);
+      }
+      return { ok: true };
+    }),
+
+  revokeInvite: protectedProcedure
+    .input(z.object({ inviteId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.orgId) throw new TRPCError({ code: 'FORBIDDEN' });
+      if (ctx.role !== 'ADMIN') throw new TRPCError({ code: 'FORBIDDEN' });
+      await ctx.db.orgInvite.delete({ where: { id: input.inviteId } });
+      return { ok: true };
+    }),
+
   consumeInvite: protectedProcedure
     .input(z.object({ token: z.string() }))
     .mutation(async ({ ctx, input }) => {

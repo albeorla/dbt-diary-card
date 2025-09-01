@@ -8,6 +8,8 @@ generator client {
 datasource db {
     provider = "postgresql"
     url      = env("DATABASE_URL")
+    // Use a direct (non-pgbouncer) connection for migrations/introspection when available
+    directUrl = env("DATABASE_URL_DIRECT")
 }
 
 model Post {

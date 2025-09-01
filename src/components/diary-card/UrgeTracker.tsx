@@ -3,6 +3,9 @@ import InfoIcon from '~/components/ui/InfoIcon';
 import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
+import Checkbox from '@mui/material/Checkbox';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Slider from '@mui/material/Slider';
 
 export type Urge =
   | 'SELF_HARM'
@@ -56,26 +59,34 @@ export function UrgeTracker({
                   title={`Track your urge: ${URGE_LABELS[k as Urge].toLowerCase()}. Set intensity and whether you acted on it.`}
                 />
               </Box>
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={v.actedOn}
-                  onChange={(e) => onToggleActed(k as Urge, e.target.checked)}
-                  title={`Mark if you acted on the ${k.toLowerCase()} urge today.`}
-                />
-                Acted on
-              </label>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={v.actedOn}
+                    onChange={(e) => onToggleActed(k as Urge, e.target.checked)}
+                    inputProps={{
+                      'aria-label': `Acted on ${URGE_LABELS[k as Urge].toLowerCase()} urge`,
+                    }}
+                  />
+                }
+                label={<span className="text-sm">Acted on</span>}
+              />
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <input
-                type="range"
-                min={0}
-                max={5}
-                value={v.intensity}
-                onChange={(e) => onChangeIntensity(k as Urge, Number(e.target.value))}
-                title={`Set ${URGE_LABELS[k as Urge].toLowerCase()} urge intensity from 0 (none) to 5 (strongest). Current: ${v.intensity}`}
-              />
-              <span className="w-6 text-right text-sm">{v.intensity}</span>
+              <Box sx={{ flex: 1, px: 1 }}>
+                <Slider
+                  aria-label={`${URGE_LABELS[k as Urge]} intensity`}
+                  min={0}
+                  max={5}
+                  step={1}
+                  value={v.intensity}
+                  onChange={(_, value) => onChangeIntensity(k as Urge, Number(value))}
+                  valueLabelDisplay="auto"
+                />
+              </Box>
+              <span className="w-6 text-right text-sm" aria-live="polite">
+                {v.intensity}
+              </span>
             </Box>
           </Paper>
         ))}
