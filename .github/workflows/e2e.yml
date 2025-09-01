@@ -34,7 +34,6 @@ jobs:
         env:
           AUTH_SECRET: testsecret
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
-          NODE_ENV: development
       - name: List build output
         run: ls -la
       - name: Upload Next build artifact
@@ -100,7 +99,6 @@ jobs:
           DATABASE_URL: ${{ env.DATABASE_URL }}
           DATABASE_URL_DIRECT: ${{ env.DATABASE_URL }}
           TEST_AUTH_SECRET: dev
-          NODE_ENV: development
           CI: true
         run: |
           npm run test:e2e -- --reporter=dot
