@@ -22,19 +22,42 @@ export async function POST(req: Request) {
     org = await db.organization.create({ data: { name: 'Test Org' } });
   }
 
-  // Ensure user exists
-  const user = await db.user.upsert({
-    where: { email },
-    update: {},
-    create: { email, name: email.split('@')[0] },
-  });
+  // Ensure user exists (tolerate concurrent creation across parallel tests)
+  let user;
+  try {
+    user = await db.user.upsert({
+      where: { email },
+      update: {},
+      create: { email, name: email.split('@')[0] },
+    });
+  } catch (err: any) {
+    // If another worker created the same user at the exact same time, Prisma can surface a P2002
+    // unique constraint error from the create branch of upsert. In that case, just fetch it.
+    if (err?.code === 'P2002') {
+      user = await db.user.findUniqueOrThrow({ where: { email } });
+    } else {
+      throw err;
+    }
+  }
 
   // Ensure membership
-  await db.orgMembership.upsert({
-    where: { orgId_userId: { orgId: org.id, userId: user.id } },
-    update: { role },
-    create: { orgId: org.id, userId: user.id, role },
-  });
+  try {
+    await db.orgMembership.upsert({
+      where: { orgId_userId: { orgId: org.id, userId: user.id } },
+      update: { role },
+      create: { orgId: org.id, userId: user.id, role },
+    });
+  } catch (err: any) {
+    if (err?.code === 'P2002') {
+      // Created by a concurrent request; ensure role is up to date
+      await db.orgMembership.update({
+        where: { orgId_userId: { orgId: org.id, userId: user.id } },
+        data: { role },
+      });
+    } else {
+      throw err;
+    }
+  }
 
   // Create a DB session and set cookie
   const sessionToken = crypto.randomUUID();

@@ -100,16 +100,7 @@ const MyApp: AppType<{ session: Session | null }> = ({
                 sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
               >
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Link href="/dashboard">
-                    <Typography
-                      variant="h6"
-                      component="span"
-                      color="text.primary"
-                      sx={{ fontWeight: 700 }}
-                    >
-                      DBT Diary Card
-                    </Typography>
-                  </Link>
+                  <RoleAwareLogoLinkNoSSR />
                   <Box sx={{ display: { xs: 'none', sm: 'flex' }, gap: 2 }}>
                     <RoleAwareNavNoSSR isActive={isActive} />
                   </Box>
@@ -152,6 +143,36 @@ const MyApp: AppType<{ session: Session | null }> = ({
     </SessionProvider>
   );
 };
+
+function RoleAwareLogoLink() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const { status } = useSession();
+  const { data } = api.org.state.useQuery(undefined, {
+    enabled: mounted && status === 'authenticated',
+  });
+
+  if (!mounted || status === 'unauthenticated') {
+    return (
+      <Link href="/dashboard">
+        <Typography variant="h6" component="span" color="text.primary" sx={{ fontWeight: 700 }}>
+          DBT Diary Card
+        </Typography>
+      </Link>
+    );
+  }
+
+  const role = data?.role;
+  const href = role === 'ADMIN' ? '/admin/org' : role === 'MANAGER' ? '/manager' : '/dashboard';
+
+  return (
+    <Link href={href}>
+      <Typography variant="h6" component="span" color="text.primary" sx={{ fontWeight: 700 }}>
+        DBT Diary Card
+      </Typography>
+    </Link>
+  );
+}
 
 function RoleAwareNav({ isActive }: { isActive: (href: string) => boolean }) {
   const [mounted, setMounted] = useState(false);
@@ -250,4 +271,5 @@ function HeaderAuth() {
 export default api.withTRPC(MyApp);
 
 const RoleAwareNavNoSSR = dynamic(async () => RoleAwareNav, { ssr: false });
+const RoleAwareLogoLinkNoSSR = dynamic(async () => RoleAwareLogoLink, { ssr: false });
 const HeaderAuthNoSSR = dynamic(async () => HeaderAuth, { ssr: false });

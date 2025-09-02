@@ -24,7 +24,7 @@ async function signIn(page: any, request: any, email = `e2e-auth-${Date.now()}@e
 test('signs in via test auth route and reaches dashboard', async ({ page, request }) => {
   await signIn(page, request);
   await page.goto('/dashboard');
-  await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Dashboard/ })).toBeVisible();
 });
 
 test('can open calendar modal (today) and save quick note', async ({ page, request }) => {

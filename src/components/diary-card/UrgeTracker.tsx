@@ -1,11 +1,7 @@
 import React from 'react';
 import InfoIcon from '~/components/ui/InfoIcon';
-import Paper from '@mui/material/Paper';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Checkbox from '@mui/material/Checkbox';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Slider from '@mui/material/Slider';
+import { Box, Typography, Slider, Card, Chip, Switch, FormControlLabel } from '@mui/material';
+import { Warning, CheckCircle } from '@mui/icons-material';
 
 export type Urge =
   | 'SELF_HARM'
@@ -26,72 +22,200 @@ export const URGE_LABELS: Record<Urge, string> = {
   RUMINATING: 'Ruminating',
 };
 
+const urgeColors = {
+  SELF_HARM: '#dc2626',
+  SUBSTANCE_USE: '#ea580c',
+  BINGE_EATING: '#d97706',
+  RESTRICTING: '#ca8a04',
+  ISOLATING: '#7c3aed',
+  LASHING_OUT: '#c2410c',
+  RUMINATING: '#0891b2',
+};
+
+const getIntensityLabel = (value: number) => {
+  if (value === 0) return 'None';
+  if (value === 1) return 'Low';
+  if (value === 2) return 'Mild';
+  if (value === 3) return 'Moderate';
+  if (value === 4) return 'High';
+  return 'Extreme';
+};
+
 export function UrgeTracker({
   urges,
   onToggleActed,
   onChangeIntensity,
+  readOnly,
 }: {
   urges: Record<Urge, { intensity: number; actedOn: boolean }>;
   onToggleActed: (key: Urge, acted: boolean) => void;
   onChangeIntensity: (key: Urge, intensity: number) => void;
+  readOnly?: boolean;
 }) {
   return (
-    <section className="mb-8">
-      <Typography variant="h6" sx={{ mb: 1 }}>
-        Urges (0-5)
-      </Typography>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        {Object.entries(urges).map(([k, v]) => (
-          <Paper key={k} variant="outlined" sx={{ p: 2 }}>
+    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 3 }}>
+      {Object.entries(urges).map(([k, v]) => {
+        const urge = k as Urge;
+        const color = urgeColors[urge];
+        const hasUrge = v.intensity > 0;
+        const actedOn = v.actedOn;
+
+        return (
+          <Card
+            key={k}
+            sx={{
+              p: 3,
+              transition: 'all 0.2s ease-in-out',
+              '&:hover': {
+                transform: 'translateY(-2px)',
+                boxShadow: 3,
+              },
+              border: hasUrge ? `2px solid ${color}` : '1px solid',
+              borderColor: hasUrge ? color : 'divider',
+              backgroundColor: actedOn ? `${color}08` : 'background.paper',
+            }}
+          >
+            {/* Header */}
             <Box
-              sx={{
-                mb: 1.5,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
+              sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  {URGE_LABELS[k as Urge]}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography
+                  variant="subtitle1"
+                  sx={{
+                    fontWeight: 600,
+                    color: hasUrge ? color : 'text.primary',
+                  }}
+                >
+                  {URGE_LABELS[urge]}
                 </Typography>
                 <InfoIcon
-                  title={`Track your urge: ${URGE_LABELS[k as Urge].toLowerCase()}. Set intensity and whether you acted on it.`}
+                  title={`Track your urge: ${URGE_LABELS[urge].toLowerCase()}. Set intensity (0-5) and whether you acted on it.`}
                 />
+                {actedOn && (
+                  <Warning
+                    sx={{
+                      color: color,
+                      fontSize: 18,
+                      ml: 0.5,
+                    }}
+                  />
+                )}
               </Box>
+              <Chip
+                label={v.intensity}
+                size="small"
+                sx={{
+                  backgroundColor: hasUrge ? color : 'grey.200',
+                  color: hasUrge ? 'white' : 'text.secondary',
+                  fontWeight: 600,
+                  minWidth: 32,
+                }}
+              />
+            </Box>
+
+            {/* Intensity Slider */}
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
+                Intensity Level
+              </Typography>
+              <Slider
+                aria-label={`${URGE_LABELS[urge]} intensity`}
+                min={0}
+                max={5}
+                step={1}
+                value={v.intensity}
+                onChange={(_, value) => onChangeIntensity(urge, Number(value))}
+                valueLabelDisplay="auto"
+                disabled={!!readOnly}
+                sx={{
+                  color: hasUrge ? color : 'grey.300',
+                  '& .MuiSlider-thumb': {
+                    backgroundColor: hasUrge ? color : 'grey.400',
+                  },
+                  '& .MuiSlider-track': {
+                    backgroundColor: hasUrge ? color : 'grey.300',
+                  },
+                  '& .MuiSlider-rail': {
+                    backgroundColor: 'grey.200',
+                  },
+                  '& .MuiSlider-mark': {
+                    backgroundColor: 'grey.400',
+                  },
+                  '& .MuiSlider-markActive': {
+                    backgroundColor: hasUrge ? color : 'grey.400',
+                  },
+                }}
+                marks={[
+                  { value: 0, label: '0' },
+                  { value: 1, label: '1' },
+                  { value: 2, label: '2' },
+                  { value: 3, label: '3' },
+                  { value: 4, label: '4' },
+                  { value: 5, label: '5' },
+                ]}
+              />
+            </Box>
+
+            {/* Footer */}
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                pt: 1,
+                borderTop: 1,
+                borderColor: 'divider',
+              }}
+            >
+              <Typography
+                variant="caption"
+                sx={{
+                  color: hasUrge ? color : 'text.secondary',
+                  fontWeight: 500,
+                }}
+              >
+                {getIntensityLabel(v.intensity)}
+              </Typography>
+
               <FormControlLabel
                 control={
-                  <Checkbox
-                    checked={v.actedOn}
-                    onChange={(e) => onToggleActed(k as Urge, e.target.checked)}
+                  <Switch
+                    checked={actedOn}
+                    onChange={(e) => onToggleActed(urge, e.target.checked)}
+                    size="small"
+                    disabled={!!readOnly}
+                    sx={{
+                      '& .MuiSwitch-switchBase.Mui-checked': {
+                        color: color,
+                      },
+                      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                        backgroundColor: color,
+                      },
+                    }}
                     inputProps={{
-                      'aria-label': `Acted on ${URGE_LABELS[k as Urge].toLowerCase()} urge`,
+                      'aria-label': `Acted on ${URGE_LABELS[urge].toLowerCase()} urge`,
                     }}
                   />
                 }
-                label={<span className="text-sm">Acted on</span>}
+                label={
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      fontWeight: 500,
+                      color: actedOn ? color : 'text.secondary',
+                    }}
+                  >
+                    Acted on it
+                  </Typography>
+                }
+                sx={{ m: 0 }}
               />
             </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Box sx={{ flex: 1, px: 1 }}>
-                <Slider
-                  aria-label={`${URGE_LABELS[k as Urge]} intensity`}
-                  min={0}
-                  max={5}
-                  step={1}
-                  value={v.intensity}
-                  onChange={(_, value) => onChangeIntensity(k as Urge, Number(value))}
-                  valueLabelDisplay="auto"
-                />
-              </Box>
-              <span className="w-6 text-right text-sm" aria-live="polite">
-                {v.intensity}
-              </span>
-            </Box>
-          </Paper>
-        ))}
-      </div>
-    </section>
+          </Card>
+        );
+      })}
+    </Box>
   );
 }
 

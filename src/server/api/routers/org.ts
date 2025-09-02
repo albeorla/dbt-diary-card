@@ -1,5 +1,10 @@
 import { z } from 'zod';
-import { createTRPCRouter, protectedProcedure } from '~/server/api/trpc';
+import {
+  createTRPCRouter,
+  protectedProcedure,
+  adminProcedure,
+  managerOrAdminProcedure,
+} from '~/server/api/trpc';
 import { TRPCError } from '@trpc/server';
 import { env } from '~/env';
 import { sendInviteEmail } from '~/server/email/mailer';
@@ -35,7 +40,7 @@ export const orgRouter = createTRPCRouter({
       return org;
     }),
 
-  listMembers: protectedProcedure.query(async ({ ctx }) => {
+  listMembers: adminProcedure.query(async ({ ctx }) => {
     if (!ctx.orgId) return [];
     const members = await ctx.db.orgMembership.findMany({
       where: { orgId: ctx.orgId },
@@ -51,7 +56,7 @@ export const orgRouter = createTRPCRouter({
     }));
   }),
 
-  setRole: protectedProcedure
+  setRole: adminProcedure
     .input(z.object({ membershipId: z.string(), role: z.enum(['ADMIN', 'MANAGER', 'USER']) }))
     .mutation(async ({ ctx, input }) => {
       return ctx.db.orgMembership.update({
@@ -60,7 +65,7 @@ export const orgRouter = createTRPCRouter({
       });
     }),
 
-  assignManager: protectedProcedure
+  assignManager: adminProcedure
     .input(z.object({ membershipId: z.string(), managerMembershipId: z.string().nullable() }))
     .mutation(async ({ ctx, input }) => {
       return ctx.db.orgMembership.update({
@@ -69,7 +74,7 @@ export const orgRouter = createTRPCRouter({
       });
     }),
 
-  managerUsers: protectedProcedure.query(async ({ ctx }) => {
+  managerUsers: managerOrAdminProcedure.query(async ({ ctx }) => {
     if (!ctx.orgId || !ctx.session?.user?.id) return [];
     const me = await ctx.db.orgMembership.findFirst({
       where: { orgId: ctx.orgId, userId: ctx.session.user.id },
@@ -87,7 +92,7 @@ export const orgRouter = createTRPCRouter({
     }));
   }),
 
-  managerSummary: protectedProcedure
+  managerSummary: managerOrAdminProcedure
     .input(z.object({ start: z.string(), end: z.string() }))
     .query(async ({ ctx, input }) => {
       if (!ctx.orgId || !ctx.session?.user?.id) return [];
@@ -114,7 +119,7 @@ export const orgRouter = createTRPCRouter({
       return userIds.map((uid) => ({ userId: uid, entryCount: counts.get(uid) ?? 0 }));
     }),
 
-  assignByEmail: protectedProcedure
+  assignByEmail: adminProcedure
     .input(
       z.object({
         email: z.string().email(),
@@ -312,7 +317,7 @@ export const orgRouter = createTRPCRouter({
       return result;
     }),
 
-  adminManagerUsers: protectedProcedure
+  adminManagerUsers: adminProcedure
     .input(z.object({ managerMembershipId: z.string() }))
     .query(async ({ ctx, input }) => {
       if (!ctx.orgId) return [];
@@ -327,7 +332,7 @@ export const orgRouter = createTRPCRouter({
       }));
     }),
 
-  adminManagerSummaryFor: protectedProcedure
+  adminManagerSummaryFor: adminProcedure
     .input(z.object({ managerMembershipId: z.string(), start: z.string(), end: z.string() }))
     .query(async ({ ctx, input }) => {
       if (!ctx.orgId) return [];
@@ -440,7 +445,7 @@ export const orgRouter = createTRPCRouter({
       return entry;
     }),
 
-  adminTrendsEmotions: protectedProcedure
+  adminTrendsEmotions: adminProcedure
     .input(z.object({ start: z.string(), end: z.string() }))
     .query(async ({ ctx, input }) => {
       if (!ctx.orgId) return [];
@@ -472,7 +477,7 @@ export const orgRouter = createTRPCRouter({
       );
     }),
 
-  adminTrendsSkills: protectedProcedure
+  adminTrendsSkills: adminProcedure
     .input(z.object({ start: z.string(), end: z.string() }))
     .query(async ({ ctx, input }) => {
       if (!ctx.orgId) return [];
@@ -498,19 +503,21 @@ export const orgRouter = createTRPCRouter({
       );
     }),
 
-  managerTrendsEmotions: protectedProcedure
+  managerTrendsEmotions: managerOrAdminProcedure
     .input(
       z.object({ start: z.string(), end: z.string(), managerMembershipId: z.string().optional() }),
     )
     .query(async ({ ctx, input }) => {
       if (!ctx.orgId) return [];
+      const me = await ctx.db.orgMembership.findFirst({
+        where: { orgId: ctx.orgId, userId: ctx.session!.user!.id },
+        select: { id: true },
+      });
       let managerId: string | null = input.managerMembershipId ?? null;
-      if (!managerId) {
-        const me = await ctx.db.orgMembership.findFirst({
-          where: { orgId: ctx.orgId, userId: ctx.session!.user!.id },
-          select: { id: true },
-        });
-        managerId = me?.id ?? null;
+      if (!managerId) managerId = me?.id ?? null;
+      // If caller is a MANAGER and passed a different managerMembershipId, forbid
+      if (ctx.role === 'MANAGER' && managerId && me?.id && managerId !== me.id) {
+        throw new TRPCError({ code: 'FORBIDDEN' });
       }
       if (!managerId) return [];
       const users = await ctx.db.orgMembership.findMany({
@@ -542,19 +549,20 @@ export const orgRouter = createTRPCRouter({
       })).sort((a, b) => b.avg - a.avg);
     }),
 
-  managerTrendsSkills: protectedProcedure
+  managerTrendsSkills: managerOrAdminProcedure
     .input(
       z.object({ start: z.string(), end: z.string(), managerMembershipId: z.string().optional() }),
     )
     .query(async ({ ctx, input }) => {
       if (!ctx.orgId) return [];
+      const me = await ctx.db.orgMembership.findFirst({
+        where: { orgId: ctx.orgId, userId: ctx.session!.user!.id },
+        select: { id: true },
+      });
       let managerId: string | null = input.managerMembershipId ?? null;
-      if (!managerId) {
-        const me = await ctx.db.orgMembership.findFirst({
-          where: { orgId: ctx.orgId, userId: ctx.session!.user!.id },
-          select: { id: true },
-        });
-        managerId = me?.id ?? null;
+      if (!managerId) managerId = me?.id ?? null;
+      if (ctx.role === 'MANAGER' && managerId && me?.id && managerId !== me.id) {
+        throw new TRPCError({ code: 'FORBIDDEN' });
       }
       if (!managerId) return [];
       const users = await ctx.db.orgMembership.findMany({

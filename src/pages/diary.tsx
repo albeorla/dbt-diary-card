@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { useSession, signIn } from 'next-auth/react';
 import { api } from '~/utils/api';
+import React from 'react';
 import {
   EmotionSliders,
   EMOTION_LABELS,
@@ -13,12 +14,27 @@ import { SkillsCheckList, SKILL_MODULE_LABELS } from '~/components/diary-card/Sk
 import NotesSection from '~/components/diary-card/NotesSection';
 import FormActions from '~/components/diary-card/FormActions';
 import InfoIcon from '~/components/ui/InfoIcon';
+import {
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Alert,
+  Avatar,
+  Chip,
+  LinearProgress,
+} from '@mui/material';
+import { ArrowBack, Today, Save, Refresh, Person, CheckCircle } from '@mui/icons-material';
+import ModernCard from '~/components/ui/ModernCard';
+import EmptyState from '~/components/ui/EmptyState';
+import Link from 'next/link';
 
 // Types and labels are imported from components
 
 export default function DiaryPage() {
   const { status, data: session } = useSession();
   const router = useRouter();
+  const orgState = api.org.state.useQuery(undefined, { enabled: status === 'authenticated' });
   const todayStr = useMemo(() => {
     const d = new Date();
     const y = d.getFullYear();
@@ -26,7 +42,12 @@ export default function DiaryPage() {
     const day = String(d.getDate()).padStart(2, '0');
     return `${y}-${m}-${day}`;
   }, []);
-  const [date, setDate] = useState<string>(todayStr);
+
+  // Get date from URL query or default to today
+  const urlDate = router.query.date as string;
+  const [date, setDate] = useState<string>(urlDate || todayStr);
+  const isToday = date === todayStr;
+  const isReadOnly = !isToday;
   const [notes, setNotes] = useState<string>('');
   const [emotions, setEmotions] = useState<Record<Emotion, number>>({
     SADNESS: 0,
@@ -66,11 +87,15 @@ export default function DiaryPage() {
     },
   });
 
-  // Lock the diary to today's date only
+  // Set date from URL params or today
   useEffect(() => {
-    setDate(todayStr);
+    if (urlDate && urlDate !== date) {
+      setDate(urlDate);
+    } else if (!urlDate && date !== todayStr) {
+      setDate(todayStr);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [urlDate, todayStr]);
 
   useEffect(() => {
     if (!getByDate.data) return;
@@ -137,17 +162,66 @@ export default function DiaryPage() {
 
   if (status === 'unauthenticated') {
     return (
-      <main className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <p className="mb-4">You must sign in to view your diary card.</p>
-          <button
-            className="rounded bg-indigo-600 px-4 py-2 text-white"
-            onClick={() => void signIn()}
-          >
-            Sign in
-          </button>
-        </div>
-      </main>
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          p: 2,
+        }}
+      >
+        <ModernCard sx={{ textAlign: 'center', maxWidth: 400 }}>
+          <EmptyState
+            icon="📝"
+            title="Diary access required"
+            description="Sign in to access your personal DBT diary card and track your progress."
+            action={{
+              label: 'Sign In',
+              onClick: () => void signIn(),
+              variant: 'contained',
+            }}
+          />
+        </ModernCard>
+      </Box>
+    );
+  }
+
+  // Gate diary card to USER role only
+  if (status === 'authenticated' && orgState.data && orgState.data.role !== 'USER') {
+    return (
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          p: 2,
+        }}
+      >
+        <ModernCard sx={{ textAlign: 'center', maxWidth: 500 }}>
+          <EmptyState
+            icon="📚"
+            title="Diary not available"
+            description={`The diary card is only available to end users. Your current role is ${orgState.data.role}.`}
+          />
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 1, mt: 3 }}>
+            <Button component={Link} href="/" variant="contained" color="primary">
+              Go Home
+            </Button>
+            {orgState.data.role === 'ADMIN' && (
+              <Button component={Link} href="/admin/org" variant="outlined">
+                Open Admin
+              </Button>
+            )}
+            {orgState.data.role === 'MANAGER' && (
+              <Button component={Link} href="/manager" variant="outlined">
+                Open Manager
+              </Button>
+            )}
+          </Box>
+        </ModernCard>
+      </Box>
     );
   }
 
@@ -156,83 +230,230 @@ export default function DiaryPage() {
       <Head>
         <title>Diary · DBT Diary Card</title>
       </Head>
-      <main className="mx-auto max-w-4xl p-6">
-        <div className="sticky top-0 z-10 mb-6 flex items-center justify-between border-b bg-white/90 px-0 py-3 backdrop-blur">
-          <button
-            type="button"
-            onClick={() => router.back()}
-            className="rounded border border-gray-300 px-3 py-1 text-sm text-gray-800 hover:bg-gray-50"
-            title="Go back to the previous page"
-          >
-            ← Back
-          </button>
-          <h1 className="text-3xl font-bold">
-            {session?.user?.name ? `${session.user.name}'s Diary Card` : 'Diary Card'}
-          </h1>
-          <span className="w-16" />
-        </div>
-        <div className="mb-6 flex items-center gap-4">
-          <div className="flex items-center gap-1">
-            <label className="text-sm font-medium" htmlFor="date">
-              Date
-            </label>
-            <InfoIcon title="The diary card is locked to today's date." />
-          </div>
-          <input
-            id="date"
-            type="date"
-            className="rounded border p-2 bg-gray-100 text-gray-500 cursor-not-allowed"
-            value={date}
-            disabled
-            title="The diary card is locked to today's date."
-          />
-          {getByDate.isFetching && <span className="text-sm text-gray-500">Loading…</span>}
-        </div>
-        {showSaved && (
-          <div className="fixed bottom-4 right-4 z-20 rounded border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-800 shadow">
-            Saved
-          </div>
-        )}
+      <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', py: 3 }}>
+        <Box sx={{ maxWidth: '900px', mx: 'auto', px: { xs: 2, sm: 3, lg: 4 } }}>
+          <ModernCard sx={{ mb: 3, position: 'sticky', top: 16, zIndex: 10 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: 2,
+              }}
+            >
+              <Button
+                startIcon={<ArrowBack />}
+                onClick={() => router.back()}
+                variant="outlined"
+                size="small"
+              >
+                Back
+              </Button>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, textAlign: 'center' }}>
+                <Avatar sx={{ bgcolor: 'primary.main' }}>
+                  <Person />
+                </Avatar>
+                <Box>
+                  <Typography variant="h5" component="h1" sx={{ fontWeight: 700 }}>
+                    {session?.user?.name ? `${session.user.name}'s Diary` : 'Daily Diary'}
+                    {isReadOnly ? ' (Read Only)' : ''}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    DBT Diary Card • {isToday ? "Today's Entry" : 'Historical View'}
+                  </Typography>
+                </Box>
+              </Box>
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                <Chip
+                  icon={<Today />}
+                  label={new Date(date).toLocaleDateString('en-US', {
+                    weekday: 'short',
+                    month: 'short',
+                    day: 'numeric',
+                  })}
+                  color={isToday ? 'primary' : 'secondary'}
+                  variant={isToday ? 'filled' : 'outlined'}
+                />
+                {isReadOnly && (
+                  <Chip label="Read Only" size="small" color="warning" variant="filled" />
+                )}
+              </Box>
+            </Box>
+            {getByDate.isFetching && (
+              <Box sx={{ mt: 2 }}>
+                <LinearProgress sx={{ height: 4, borderRadius: 1 }} />
+              </Box>
+            )}
+          </ModernCard>
 
-        <EmotionSliders
-          emotions={emotions}
-          onChange={(key, value) => setEmotions((prev) => ({ ...(prev as any), [key]: value }))}
-          isLoading={!skillsQuery.data && getByDate.isLoading}
-        />
+          {showSaved && (
+            <Alert
+              severity="success"
+              icon={<CheckCircle />}
+              sx={{
+                position: 'fixed',
+                bottom: 24,
+                right: 24,
+                zIndex: 1300,
+                minWidth: 200,
+              }}
+              onClose={() => setShowSaved(false)}
+            >
+              Entry saved successfully!
+            </Alert>
+          )}
 
-        <UrgeTracker
-          urges={urges}
-          onToggleActed={(key, acted) =>
-            setUrges((prev) => ({
-              ...(prev as any),
-              [key]: { ...(prev as any)[key], actedOn: acted },
-            }))
-          }
-          onChangeIntensity={(key, intensity) =>
-            setUrges((prev) => ({ ...(prev as any), [key]: { ...(prev as any)[key], intensity } }))
-          }
-        />
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <ModernCard
+              title="Emotions"
+              subtitle={
+                isReadOnly ? 'Emotion ratings from this day' : 'Rate your emotions from 0-10'
+              }
+              action={
+                isReadOnly && (
+                  <Chip label="Read Only" size="small" color="warning" variant="outlined" />
+                )
+              }
+            >
+              <EmotionSliders
+                emotions={emotions}
+                onChange={
+                  isReadOnly
+                    ? () => {}
+                    : (key, value) => setEmotions((prev) => ({ ...(prev as any), [key]: value }))
+                }
+                isLoading={!skillsQuery.data && getByDate.isLoading}
+                readOnly={isReadOnly}
+              />
+            </ModernCard>
 
-        <SkillsCheckList
-          groupedSkills={(skillsQuery.data as any) ?? {}}
-          selected={selectedSkills}
-          onToggle={(name, checked) =>
-            setSelectedSkills((prev) =>
-              checked ? [...prev, name] : prev.filter((n) => n !== name),
-            )
-          }
-        />
+            <ModernCard
+              title="Urges & Behaviors"
+              subtitle={
+                isReadOnly
+                  ? 'Urge patterns from this day'
+                  : 'Track urge intensity and whether you acted on them'
+              }
+              action={
+                isReadOnly && (
+                  <Chip label="Read Only" size="small" color="warning" variant="outlined" />
+                )
+              }
+            >
+              <UrgeTracker
+                urges={urges}
+                onToggleActed={
+                  isReadOnly
+                    ? () => {}
+                    : (key, acted) =>
+                        setUrges((prev) => ({
+                          ...(prev as any),
+                          [key]: { ...(prev as any)[key], actedOn: acted },
+                        }))
+                }
+                onChangeIntensity={
+                  isReadOnly
+                    ? () => {}
+                    : (key, intensity) =>
+                        setUrges((prev) => ({
+                          ...(prev as any),
+                          [key]: { ...(prev as any)[key], intensity },
+                        }))
+                }
+                readOnly={isReadOnly}
+              />
+            </ModernCard>
 
-        <NotesSection value={notes} onChange={setNotes} />
+            <ModernCard
+              title="DBT Skills"
+              subtitle={
+                isReadOnly ? 'Skills used on this day' : 'Check off the skills you used today'
+              }
+              action={
+                isReadOnly && (
+                  <Chip label="Read Only" size="small" color="warning" variant="outlined" />
+                )
+              }
+            >
+              <SkillsCheckList
+                groupedSkills={(skillsQuery.data as any) ?? {}}
+                selected={selectedSkills}
+                onToggle={
+                  isReadOnly
+                    ? () => {}
+                    : (name, checked) =>
+                        setSelectedSkills((prev) =>
+                          checked ? [...prev, name] : prev.filter((n) => n !== name),
+                        )
+                }
+                readOnly={isReadOnly}
+              />
+            </ModernCard>
 
-        <FormActions
-          isSaving={upsert.isPending}
-          onSave={() => void handleSave()}
-          onReset={handleReset}
-          saved={upsert.isSuccess}
-          error={upsert.isError}
-        />
-      </main>
+            <ModernCard
+              title="Notes & Reflections"
+              subtitle={isReadOnly ? 'Notes from this day' : 'Optional notes about your day'}
+              action={
+                isReadOnly && (
+                  <Chip label="Read Only" size="small" color="warning" variant="outlined" />
+                )
+              }
+            >
+              <NotesSection
+                value={notes}
+                onChange={isReadOnly ? () => {} : setNotes}
+                readOnly={isReadOnly}
+              />
+            </ModernCard>
+
+            {isToday && (
+              <ModernCard>
+                <FormActions
+                  isSaving={upsert.isPending}
+                  onSave={() => void handleSave()}
+                  onReset={handleReset}
+                  saved={upsert.isSuccess}
+                  error={upsert.isError}
+                />
+              </ModernCard>
+            )}
+
+            {isReadOnly && (
+              <ModernCard>
+                <Box sx={{ textAlign: 'center', py: 2 }}>
+                  <Typography variant="h6" color="text.secondary" sx={{ mb: 2 }}>
+                    📖 Historical Entry View
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                    This entry is from{' '}
+                    {new Date(date).toLocaleDateString('en-US', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })}{' '}
+                    and cannot be edited.
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+                    <Button
+                      component={Link}
+                      href="/diary"
+                      variant="contained"
+                      startIcon={<Today />}
+                    >
+                      Edit Today&apos;s Entry
+                    </Button>
+                    <Button component={Link} href="/history" variant="outlined">
+                      Back to History
+                    </Button>
+                  </Box>
+                </Box>
+              </ModernCard>
+            )}
+          </Box>
+        </Box>
+      </Box>
     </>
   );
 }

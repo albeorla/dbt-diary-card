@@ -4,15 +4,25 @@ import { useSession, signIn } from 'next-auth/react';
 import { api } from '~/utils/api';
 import { useMemo, useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import React from 'react';
 import WeeklySummary from '~/components/dashboard/WeeklySummary';
 import EmotionChart from '~/components/dashboard/EmotionChart';
 import SkillsFrequency from '~/components/dashboard/SkillsFrequency';
 import UrgeHeatmap from '~/components/dashboard/UrgeHeatmap';
-import TextField from '@mui/material/TextField';
-import Button from '@mui/material/Button';
-import Paper from '@mui/material/Paper';
-import Typography from '@mui/material/Typography';
-import Box from '@mui/material/Box';
+import { TextField, Button, Typography, Box, Chip } from '@mui/material';
+import Grid from '@mui/material/GridLegacy';
+import {
+  CalendarToday,
+  People as PeopleIcon,
+  Timeline as TimelineIcon,
+  Psychology,
+  Analytics,
+  LocalFireDepartment,
+} from '@mui/icons-material';
+import ModernCard from '~/components/ui/ModernCard';
+import StatCard from '~/components/ui/StatCard';
+import ChartCard from '~/components/ui/ChartCard';
+import EmptyState from '~/components/ui/EmptyState';
 
 function useDefaultRange() {
   return useMemo(() => {
@@ -25,6 +35,7 @@ function useDefaultRange() {
 
 export default function DashboardPage() {
   const { status } = useSession();
+  const orgState = api.org.state.useQuery(undefined, { enabled: status === 'authenticated' });
   const def = useDefaultRange();
   const [range, setRange] = useState(def);
   const utils = api.useUtils();
@@ -91,18 +102,34 @@ export default function DashboardPage() {
 
   if (status === 'unauthenticated') {
     return (
-      <main className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <p className="mb-4">You must sign in to view the dashboard.</p>
-          <button
-            className="rounded bg-indigo-600 px-4 py-2 text-white"
-            onClick={() => void signIn()}
-          >
-            Sign in
-          </button>
-        </div>
-      </main>
+      <Box
+        sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+      >
+        <ModernCard sx={{ textAlign: 'center', maxWidth: 400 }}>
+          <EmptyState
+            icon="🔐"
+            title="Sign in required"
+            description="You must sign in to view your dashboard and diary entries."
+            action={{
+              label: 'Sign In',
+              onClick: () => void signIn(),
+              variant: 'contained',
+            }}
+          />
+        </ModernCard>
+      </Box>
     );
+  }
+
+  // Redirect admins and managers to their appropriate dashboards
+  if (status === 'authenticated' && orgState.data?.role === 'ADMIN') {
+    router.push('/admin/org');
+    return null;
+  }
+
+  if (status === 'authenticated' && orgState.data?.role === 'MANAGER') {
+    router.push('/manager');
+    return null;
   }
 
   const avgByEmotion: Record<string, number> = {};
@@ -118,53 +145,85 @@ export default function DashboardPage() {
       <Head>
         <title>Dashboard · DBT Diary Card</title>
       </Head>
-      <main className="mx-auto max-w-5xl p-6">
-        <div className="sticky top-0 z-10 mb-6 flex flex-wrap items-end justify-between gap-4 border-b bg-white/90 px-0 py-3 backdrop-blur">
-          <h1 className="text-3xl font-bold">Dashboard</h1>
-          <div className="flex items-center gap-2">
-            <TextField
-              id="start"
-              label="Start"
-              type="date"
-              size="small"
-              value={range.start}
-              onChange={(e) => setRange((r) => ({ ...r, start: e.target.value }))}
-              InputLabelProps={{ shrink: true }}
-            />
-            <TextField
-              id="end"
-              label="End"
-              type="date"
-              size="small"
-              value={range.end}
-              onChange={(e) => setRange((r) => ({ ...r, end: e.target.value }))}
-              InputLabelProps={{ shrink: true }}
-            />
-            <Link
-              href={`/diary?date=${range.end}`}
-              className="ml-2 rounded bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700"
-              onMouseEnter={() => {
-                // Prefetch common diary data
-                // eslint-disable-next-line @typescript-eslint/no-floating-promises
-                utils.skills.getAll.prefetch();
-                // eslint-disable-next-line @typescript-eslint/no-floating-promises
-                utils.diary.getByDate.prefetch({ date: range.end });
+      <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', py: 3 }}>
+        <Box sx={{ maxWidth: '1400px', mx: 'auto', px: { xs: 2, sm: 3, lg: 4 } }}>
+          <ModernCard sx={{ mb: 3, position: 'sticky', top: 16, zIndex: 10 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 2,
               }}
             >
-              New Entry
-            </Link>
-            <div className="ml-2 flex items-center gap-2 text-sm">
-              <Button
-                variant="outlined"
-                size="small"
+              <Box>
+                <Typography variant="h3" component="h1" sx={{ fontWeight: 700, mb: 0.5 }}>
+                  Personal Dashboard
+                </Typography>
+                <Typography variant="body1" color="text.secondary">
+                  Track your progress and insights across time
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1 }}>
+                <TextField
+                  id="start"
+                  label="Start Date"
+                  type="date"
+                  size="small"
+                  value={range.start}
+                  onChange={(e) => setRange((r) => ({ ...r, start: e.target.value }))}
+                  InputLabelProps={{ shrink: true }}
+                  sx={{ minWidth: 140 }}
+                />
+                <TextField
+                  id="end"
+                  label="End Date"
+                  type="date"
+                  size="small"
+                  value={range.end}
+                  onChange={(e) => setRange((r) => ({ ...r, end: e.target.value }))}
+                  InputLabelProps={{ shrink: true }}
+                  sx={{ minWidth: 140 }}
+                />
+                <Button
+                  component={Link}
+                  href={`/diary?date=${range.end}`}
+                  variant="contained"
+                  startIcon={<CalendarToday />}
+                  sx={{ ml: 1 }}
+                  onMouseEnter={() => {
+                    // Prefetch common diary data
+                    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+                    utils.skills.getAll.prefetch();
+                    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+                    utils.diary.getByDate.prefetch({ date: range.end });
+                  }}
+                >
+                  New Entry
+                </Button>
+              </Box>
+            </Box>
+            <Box
+              sx={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 1,
+                mt: 2,
+                pt: 2,
+                borderTop: 1,
+                borderColor: 'divider',
+              }}
+            >
+              <Chip
+                label="7 days"
                 onClick={() => setRange(def)}
-                title="Last 7 days"
-              >
-                7d
-              </Button>
-              <Button
-                variant="outlined"
+                variant={range.start === def.start ? 'filled' : 'outlined'}
+                color="primary"
                 size="small"
+              />
+              <Chip
+                label="14 days"
                 onClick={() => {
                   const end = new Date();
                   const start = new Date();
@@ -174,13 +233,12 @@ export default function DashboardPage() {
                     end: end.toISOString().slice(0, 10),
                   });
                 }}
-                title="Last 14 days"
-              >
-                14d
-              </Button>
-              <Button
                 variant="outlined"
+                color="primary"
                 size="small"
+              />
+              <Chip
+                label="30 days"
                 onClick={() => {
                   const end = new Date();
                   const start = new Date();
@@ -190,122 +248,152 @@ export default function DashboardPage() {
                     end: end.toISOString().slice(0, 10),
                   });
                 }}
-                title="Last 30 days"
-              >
-                30d
-              </Button>
-              <Button
                 variant="outlined"
+                color="primary"
                 size="small"
-                onClick={() => setRange({ start: def.start, end: def.end })}
-                title="Today"
-              >
-                Today
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        <WeeklySummary
-          entriesCount={weekly.isLoading ? 0 : totalEntries}
-          skillsCount={
-            skills.isLoading ? 0 : (skills.data ?? []).reduce((a, b) => a + (b.count as number), 0)
-          }
-          emotionsCount={trends.isLoading ? 0 : Object.keys(avgByEmotion).length}
-        />
-
-        <section className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2">
-          <Paper variant="outlined" sx={{ p: 2 }}>
-            <Typography variant="h6" sx={{ mb: 1 }}>
-              Emotion Trends
-            </Typography>
-            {trends.isLoading ? (
-              <div className="space-y-2">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                    <Skeleton width={120} />
-                    <Skeleton width={200} height={8} />
-                  </Box>
-                ))}
-              </div>
-            ) : (
-              <EmotionChart trends={(trends.data as any) ?? []} />
-            )}
-          </Paper>
-
-          <Paper variant="outlined" sx={{ p: 2 }}>
-            <Typography variant="h6" sx={{ mb: 1 }}>
-              Top Skills
-            </Typography>
-            {skills.isLoading ? (
-              <div className="space-y-2">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                    <Skeleton width={120} />
-                    <Skeleton width={200} height={8} />
-                  </Box>
-                ))}
-              </div>
-            ) : (
-              <SkillsFrequency items={(skills.data ?? []) as any} />
-            )}
-          </Paper>
-        </section>
-
-        <section className="mb-8">
-          <Paper variant="outlined" sx={{ p: 2 }}>
-            <Box
-              sx={{ mb: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
-            >
-              <Typography variant="h6">Urge Heatmap</Typography>
-              <Typography variant="body2" color="text.secondary">
-                Range: {range.start} → {range.end}
-              </Typography>
+              />
             </Box>
-            {urges.isLoading ? (
-              <div className="space-y-2">
-                <span className="inline-block h-6 w-full animate-pulse rounded bg-gray-200" />
-                <span className="inline-block h-6 w-full animate-pulse rounded bg-gray-200" />
-                <span className="inline-block h-6 w-full animate-pulse rounded bg-gray-200" />
-              </div>
-            ) : (
-              <UrgeHeatmap start={range.start} end={range.end} items={(urges.data ?? []) as any} />
-            )}
-          </Paper>
-        </section>
+          </ModernCard>
 
-        <section className="mb-8">
-          <Paper variant="outlined" sx={{ p: 2 }}>
-            <Typography variant="h6" sx={{ mb: 0.5 }}>
-              Streak
-            </Typography>
-            <div className="text-sm text-gray-600">
-              Consecutive days with an entry (including today)
-            </div>
-            <div className="mt-2 text-3xl font-bold">
-              {streakDays} day{streakDays === 1 ? '' : 's'}
-            </div>
-          </Paper>
-        </section>
-      </main>
+          <Grid container spacing={3} sx={{ mb: 4 }}>
+            <Grid item xs={12} sm={6} md={3}>
+              <StatCard
+                title="Diary Entries"
+                value={weekly.isLoading ? '...' : totalEntries}
+                subtitle="In selected range"
+                icon={<CalendarToday />}
+                color="primary"
+                trend={{
+                  value: totalEntries > 0 ? Math.round((totalEntries / 7) * 100) : 0,
+                  label: 'entries per week',
+                  direction: totalEntries >= 5 ? 'up' : totalEntries >= 2 ? 'neutral' : 'down',
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <StatCard
+                title="Skills Used"
+                value={
+                  skills.isLoading
+                    ? '...'
+                    : (skills.data ?? []).reduce((a, b) => a + (b.count as number), 0)
+                }
+                subtitle="Total skill applications"
+                icon={<Psychology />}
+                color="success"
+                trend={{
+                  value:
+                    (skills.data ?? []).reduce((a, b) => a + (b.count as number), 0) > 5
+                      ? 15
+                      : (skills.data ?? []).reduce((a, b) => a + (b.count as number), 0) > 2
+                        ? 5
+                        : 0,
+                  label: 'skill usage',
+                  direction:
+                    (skills.data ?? []).reduce((a, b) => a + (b.count as number), 0) > 5
+                      ? 'up'
+                      : (skills.data ?? []).reduce((a, b) => a + (b.count as number), 0) > 2
+                        ? 'neutral'
+                        : 'neutral',
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <StatCard
+                title="Emotions Tracked"
+                value={trends.isLoading ? '...' : Object.keys(avgByEmotion).length}
+                subtitle="Unique emotions logged"
+                icon={<Analytics />}
+                color="warning"
+                trend={{
+                  value:
+                    Object.keys(avgByEmotion).length >= 5
+                      ? 20
+                      : Object.keys(avgByEmotion).length >= 3
+                        ? 10
+                        : 0,
+                  label: 'emotional awareness',
+                  direction:
+                    Object.keys(avgByEmotion).length >= 5
+                      ? 'up'
+                      : Object.keys(avgByEmotion).length >= 3
+                        ? 'neutral'
+                        : 'neutral',
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <StatCard
+                title="Current Streak"
+                value={`${streakDays}`}
+                subtitle={streakDays === 1 ? 'day' : 'days'}
+                icon={<LocalFireDepartment />}
+                color="error"
+                trend={{
+                  value: streakDays >= 7 ? 25 : streakDays >= 3 ? 10 : -5,
+                  label: 'consistency score',
+                  direction: streakDays >= 7 ? 'up' : streakDays >= 3 ? 'neutral' : 'down',
+                }}
+              />
+            </Grid>
+          </Grid>
+
+          <Grid container spacing={3} sx={{ mb: 4 }}>
+            <Grid item xs={12} md={6}>
+              <ChartCard
+                title="Emotion Trends"
+                subtitle="Track your emotional patterns over time"
+                loading={trends.isLoading}
+                height={350}
+                emptyState={{
+                  icon: '📈',
+                  message: 'No emotion data yet',
+                  description: 'Start logging your emotions to see trends here',
+                }}
+              >
+                <EmotionChart trends={(trends.data as any) ?? []} />
+              </ChartCard>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <ChartCard
+                title="Skills Usage"
+                subtitle="Most frequently used DBT skills"
+                loading={skills.isLoading}
+                height={350}
+                emptyState={{
+                  icon: '🛠️',
+                  message: 'No skills logged yet',
+                  description: 'Track your DBT skill usage in diary entries',
+                }}
+              >
+                <SkillsFrequency items={(skills.data ?? []) as any} />
+              </ChartCard>
+            </Grid>
+          </Grid>
+
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
+              <ChartCard
+                title="Urge & Behavior Patterns"
+                subtitle={`Intensity heatmap from ${range.start} to ${range.end}`}
+                loading={urges.isLoading}
+                height={200}
+                emptyState={{
+                  icon: '🎯',
+                  message: 'No urge data available',
+                  description: 'Track urges and behaviors in your diary entries',
+                }}
+              >
+                <UrgeHeatmap
+                  start={range.start}
+                  end={range.end}
+                  items={(urges.data ?? []) as any}
+                />
+              </ChartCard>
+            </Grid>
+          </Grid>
+        </Box>
+      </Box>
     </>
   );
 }
-
-function Skeleton({
-  width = 80,
-  height = 24,
-}: {
-  width?: number | string;
-  height?: number | string;
-}) {
-  return (
-    <span
-      className="inline-block animate-pulse rounded bg-gray-200"
-      style={{ width, height }}
-      aria-hidden
-    />
-  );
-}
-
-// Sparkline moved to dedicated component

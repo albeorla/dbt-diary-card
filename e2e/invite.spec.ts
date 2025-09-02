@@ -32,11 +32,11 @@ test('magic link invite creates user, logs them in, redirects', async ({ page, r
   const invitee = `invitee-${Date.now()}@example.com`;
   await page.getByPlaceholder('user@example.com').fill(invitee);
   // Role dropdown defaults to USER; keep as is
-  await page.getByRole('button', { name: 'Assign' }).click();
-  await expect(page.getByText('Invite created. Magic link:')).toBeVisible();
+  await page.getByRole('button', { name: 'Send Invite' }).click();
+  await expect(page.getByText('View invitation link')).toBeVisible();
 
   const link = await page
-    .locator('a', { hasText: '/api/invite/accept/' })
+    .getByRole('link', { name: 'View invitation link' })
     .first()
     .getAttribute('href');
   expect(link).toBeTruthy();

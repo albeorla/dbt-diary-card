@@ -2,6 +2,10 @@
 .env.local
 .next
 Default
+# Playwright artifacts
+test-results/
+playwright-report/
+blob-report/
 node_modules
 coverage
 *.log
@@ -60,3 +64,8 @@ yarn-error.log*
 # idea files
 .idea
 client_secret_*.json
+
+# Local AI assistant settings
+.claude/*.local.*
+.gemini/
+.codex/

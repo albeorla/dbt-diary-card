@@ -1,10 +1,10 @@
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 
-import { createTRPCRouter, protectedProcedure } from '~/server/api/trpc';
+import { createTRPCRouter, userProcedure } from '~/server/api/trpc';
 
 export const diaryRouter = createTRPCRouter({
-  upsert: protectedProcedure
+  upsert: userProcedure
     .input(
       z.object({
         date: z.string(),
@@ -89,21 +89,19 @@ export const diaryRouter = createTRPCRouter({
       return entry;
     }),
 
-  getByDate: protectedProcedure
-    .input(z.object({ date: z.string() }))
-    .query(async ({ ctx, input }) => {
-      const entryDate = new Date(input.date);
-      return ctx.db.diaryEntry.findFirst({
-        where: { userId: ctx.session.user.id, entryDate },
-        include: {
-          emotionRatings: true,
-          urgesBehaviors: true,
-          skillsUsed: { include: { skill: true } },
-        },
-      });
-    }),
+  getByDate: userProcedure.input(z.object({ date: z.string() })).query(async ({ ctx, input }) => {
+    const entryDate = new Date(input.date);
+    return ctx.db.diaryEntry.findFirst({
+      where: { userId: ctx.session.user.id, entryDate },
+      include: {
+        emotionRatings: true,
+        urgesBehaviors: true,
+        skillsUsed: { include: { skill: true } },
+      },
+    });
+  }),
 
-  getRange: protectedProcedure
+  getRange: userProcedure
     .input(z.object({ startDate: z.string(), endDate: z.string() }))
     .query(async ({ ctx, input }) => {
       return ctx.db.diaryEntry.findMany({
@@ -116,7 +114,7 @@ export const diaryRouter = createTRPCRouter({
     }),
 
   // Detailed export: includes top-level related records for printing
-  getRangeDetailed: protectedProcedure
+  getRangeDetailed: userProcedure
     .input(z.object({ startDate: z.string(), endDate: z.string() }))
     .query(async ({ ctx, input }) => {
       return ctx.db.diaryEntry.findMany({
@@ -133,7 +131,7 @@ export const diaryRouter = createTRPCRouter({
       });
     }),
 
-  getRecent: protectedProcedure
+  getRecent: userProcedure
     .input(z.object({ limit: z.number().default(7) }))
     .query(async ({ ctx, input }) => {
       return ctx.db.diaryEntry.findMany({
@@ -143,11 +141,9 @@ export const diaryRouter = createTRPCRouter({
       });
     }),
 
-  delete: protectedProcedure
-    .input(z.object({ id: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      return ctx.db.diaryEntry.delete({
-        where: { id: input.id, userId: ctx.session.user.id } as any,
-      });
-    }),
+  delete: userProcedure.input(z.object({ id: z.string() })).mutation(async ({ ctx, input }) => {
+    return ctx.db.diaryEntry.delete({
+      where: { id: input.id, userId: ctx.session.user.id } as any,
+    });
+  }),
 });

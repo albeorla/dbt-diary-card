@@ -181,3 +181,35 @@ export const protectedProcedure = t.procedure.use(timingMiddleware).use(({ ctx, 
     },
   });
 });
+
+/**
+ * User-only (role = USER) procedure
+ *
+ * Use this when a feature should only be available to end users, not admins or managers.
+ */
+export const userProcedure = protectedProcedure.use(({ ctx, next }) => {
+  if (ctx.role !== 'USER') {
+    throw new TRPCError({ code: 'FORBIDDEN' });
+  }
+  return next();
+});
+
+/**
+ * Admin-only procedure
+ */
+export const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
+  if (ctx.role !== 'ADMIN') {
+    throw new TRPCError({ code: 'FORBIDDEN' });
+  }
+  return next();
+});
+
+/**
+ * Manager or Admin procedure
+ */
+export const managerOrAdminProcedure = protectedProcedure.use(({ ctx, next }) => {
+  if (ctx.role !== 'MANAGER' && ctx.role !== 'ADMIN') {
+    throw new TRPCError({ code: 'FORBIDDEN' });
+  }
+  return next();
+});
