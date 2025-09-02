@@ -92,8 +92,7 @@ jobs:
           DATABASE_URL_DIRECT: ${{ env.DATABASE_URL }}
           TEST_AUTH_SECRET: dev
           CI: true
-        run: |
-          npm run test:e2e -- --reporter=dot
+        run: npm run test:e2e -- --reporter=dot
 
   deploy_preview:
     name: Deploy Preview (Vercel)
