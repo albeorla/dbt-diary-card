@@ -32,7 +32,7 @@ jobs:
       - name: Build
         run: npm run build
         env:
-          AUTH_SECRET: testsecret
+          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
 
   e2e:
@@ -71,7 +71,7 @@ jobs:
         env:
           DATABASE_URL: ${{ env.DATABASE_URL }}
           DATABASE_URL_DIRECT: ${{ env.DATABASE_URL }}
-          AUTH_SECRET: testsecret
+          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
         run: npm run build
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
@@ -86,11 +86,11 @@ jobs:
           npm run db:seed --if-present
       - name: Run E2E
         env:
-          NEXTAUTH_URL: http://localhost:3000
-          AUTH_SECRET: testsecret
+          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
+          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
           DATABASE_URL: ${{ env.DATABASE_URL }}
           DATABASE_URL_DIRECT: ${{ env.DATABASE_URL }}
-          TEST_AUTH_SECRET: dev
+          TEST_AUTH_SECRET: ${{ secrets.TEST_AUTH_SECRET }}
           CI: true
         run: npm run test:e2e -- --reporter=dot
 
