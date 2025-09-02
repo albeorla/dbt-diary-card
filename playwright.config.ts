@@ -18,7 +18,11 @@ export default defineConfig({
     timeout: 120_000,
     env: {
       // Pass through all current env vars to ensure web server has access
-      ...process.env,
+      ...Object.fromEntries(
+        Object.entries(process.env).filter(([, value]) => value !== undefined) as Array<
+          [string, string]
+        >,
+      ),
     },
   },
   projects: [
