@@ -19,8 +19,7 @@ export default defineConfig({
     env: {
       // CRITICAL: Playwright webServer doesn't inherit env vars by default
       // Must explicitly pass all environment variables needed by the server
-      // Use 'test' in CI to enable test-auth route, 'development' locally
-      NODE_ENV: process.env.NODE_ENV || (process.env.CI ? 'test' : 'development'),
+      NODE_ENV: process.env.CI ? 'test' : process.env.NODE_ENV || 'development',
       DATABASE_URL: process.env.DATABASE_URL || '',
       DATABASE_URL_DIRECT: process.env.DATABASE_URL_DIRECT || process.env.DATABASE_URL || '',
       AUTH_SECRET: process.env.AUTH_SECRET || '',
