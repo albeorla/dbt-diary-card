@@ -17,12 +17,18 @@ export default defineConfig({
     reuseExistingServer: true,
     timeout: 120_000,
     env: {
-      // Pass through all current env vars to ensure web server has access
-      ...Object.fromEntries(
-        Object.entries(process.env).filter(([, value]) => value !== undefined) as Array<
-          [string, string]
-        >,
-      ),
+      // CRITICAL: Playwright webServer doesn't inherit env vars by default
+      // Must explicitly pass all environment variables needed by the server
+      NODE_ENV: process.env.NODE_ENV || (process.env.CI ? 'production' : 'development'),
+      DATABASE_URL: process.env.DATABASE_URL || '',
+      DATABASE_URL_DIRECT: process.env.DATABASE_URL_DIRECT || process.env.DATABASE_URL || '',
+      AUTH_SECRET: process.env.AUTH_SECRET || '',
+      NEXTAUTH_URL: process.env.NEXTAUTH_URL || 'http://localhost:3000',
+      TEST_AUTH_SECRET: process.env.TEST_AUTH_SECRET || 'dev',
+      CI: process.env.CI || 'false',
+      // Pass through any other env vars that might be needed
+      ...(process.env.VERCEL ? { VERCEL: process.env.VERCEL } : {}),
+      ...(process.env.VERCEL_URL ? { VERCEL_URL: process.env.VERCEL_URL } : {}),
     },
   },
   projects: [
