@@ -93,6 +93,3 @@ jobs:
           TEST_AUTH_SECRET: ${{ secrets.TEST_AUTH_SECRET }}
           CI: true
         run: npm run test:e2e -- --reporter=dot
-
-  # Migrations run locally for now. CI no longer runs migrate workflow.
-  # Vercel deployment removed - testing pipeline only.
