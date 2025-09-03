@@ -31,14 +31,6 @@
       "~/*": ["./src/*"]
     }
   },
-  "include": [
-    "**/*.cjs",
-    "**/*.js",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts",
-    "next-env.d.ts",
-    "Default/types/**/*.ts"
-  ],
-  "exclude": ["node_modules", "scripts/**/*.js", "Default/**"]
+  "include": ["**/*.cjs", "**/*.js", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "next-env.d.ts"],
+  "exclude": ["node_modules", "scripts/**/*.js"]
 }
