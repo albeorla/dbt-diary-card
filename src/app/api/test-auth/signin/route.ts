@@ -10,8 +10,9 @@ export async function POST(req: Request) {
   console.log('TEST_AUTH_SECRET:', process.env.TEST_AUTH_SECRET ? '[SET]' : '[UNSET]');
   console.log('DATABASE_URL:', process.env.DATABASE_URL ? '[SET]' : '[UNSET]');
 
-  if (process.env.NODE_ENV === 'production') {
-    console.log('REJECTED: NODE_ENV is production');
+  // Allow in CI environment even if NODE_ENV is production
+  if (process.env.NODE_ENV === 'production' && process.env.CI !== 'true') {
+    console.log('REJECTED: NODE_ENV is production and not in CI');
     return NextResponse.json({ error: 'Not available' }, { status: 404 });
   }
 
