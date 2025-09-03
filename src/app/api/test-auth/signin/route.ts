@@ -3,26 +3,14 @@ import { cookies } from 'next/headers';
 import { db } from '~/server/db';
 
 export async function POST(req: Request) {
-  // Debug logging for CI
-  console.log('=== TEST-AUTH DEBUG ===');
-  console.log('NODE_ENV:', process.env.NODE_ENV);
-  console.log('CI:', process.env.CI);
-  console.log('TEST_AUTH_SECRET:', process.env.TEST_AUTH_SECRET ? '[SET]' : '[UNSET]');
-  console.log('DATABASE_URL:', process.env.DATABASE_URL ? '[SET]' : '[UNSET]');
-
   // Allow in CI environment even if NODE_ENV is production
   if (process.env.NODE_ENV === 'production' && process.env.CI !== 'true') {
-    console.log('REJECTED: NODE_ENV is production and not in CI');
     return NextResponse.json({ error: 'Not available' }, { status: 404 });
   }
 
   const header = req.headers.get('x-test-auth') ?? '';
   const required = process.env.TEST_AUTH_SECRET ?? '';
-  console.log('Header auth:', header ? '[PROVIDED]' : '[MISSING]');
-  console.log('Required auth:', required ? '[SET]' : '[UNSET]');
-
   if (required && header !== required) {
-    console.log('REJECTED: Auth header mismatch');
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
   const { email = 'e2e@example.com', role = 'USER' } = (await req.json().catch(() => ({}))) as {
@@ -88,6 +76,5 @@ export async function POST(req: Request) {
     expires,
   });
 
-  console.log('SUCCESS: Returning sessionToken:', sessionToken);
   return NextResponse.json({ ok: true, email, role, sessionToken });
 }

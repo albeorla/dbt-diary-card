@@ -84,24 +84,6 @@ jobs:
           echo "Using DB: $DATABASE_URL"
           npx prisma db push
           npm run db:seed --if-present
-      - name: Test auth endpoint directly
-        env:
-          NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
-          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
-          DATABASE_URL: ${{ env.DATABASE_URL }}
-          DATABASE_URL_DIRECT: ${{ env.DATABASE_URL }}
-          TEST_AUTH_SECRET: ${{ secrets.TEST_AUTH_SECRET }}
-          CI: true
-        run: |
-          echo "Testing auth endpoint directly..."
-          npm run start &
-          SERVER_PID=$!
-          sleep 10
-          curl -X POST http://localhost:3000/api/test-auth/signin \
-            -H "Content-Type: application/json" \
-            -H "x-test-auth: dev" \
-            -d '{"email":"test@example.com"}' || echo "Curl failed"
-          kill $SERVER_PID
       - name: Run E2E
         env:
           NEXTAUTH_URL: ${{ secrets.NEXTAUTH_URL }}
